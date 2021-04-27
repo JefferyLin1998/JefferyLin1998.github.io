@@ -5,4 +5,5 @@
 - [4. 金融量化](qunat/quant)
 - [5. 深度强化学习(DRL)](DRL/DRL)
 - [6. 思考](thought/thought)
+- [7. 随笔](record/record)
 - [示例](chapter1/chapter1)
