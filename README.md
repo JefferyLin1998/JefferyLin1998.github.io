@@ -2,6 +2,6 @@
 Control, statistic and finance
 
 ### Lin Jeffery
-· Bachelor degree of Nanjing University
+· Bachelor degree at Nanjing University
 
 · Master degree at Fudan University
