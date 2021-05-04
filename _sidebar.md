@@ -3,7 +3,7 @@
 - [2. 统计理论](statitic/statistic)
 - [3. 控制理论](control/control)
 - 4\. 金融量化
-   * [4.1简单研究系列一：A股开户数研究](quant/account)
+   - [4.1简单研究系列一：A股开户数研究](quant/account)
 - [5. 深度强化学习(DRL)](DRL/DRL)
 - [6. 思考](thought/thought)
 - [7. 随笔](record/record)
