@@ -1,5 +1,5 @@
 - ***Linspace***
-- [1. 统计与控制](stat_control/stat_control)
+- [1. 风险模型](stat_control/stat_control)
 - [2. 深度强化学习(DRL)](DRL/DRL)
 - 3\. 金融量化研究
    * [3.1简单研究系列一：A股开户数研究](quant/account)
