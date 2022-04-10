@@ -65,3 +65,4 @@ $$
 $$
 \psi_{P}^{2}=x_{P A}^{r} \cdot \boldsymbol{F} \cdot x_{P A}+\boldsymbol{h}_{P A}^{T} \cdot \Delta \cdot \boldsymbol{h}_{P A}=\boldsymbol{h}_{P A}^{r} \cdot \boldsymbol{V} \cdot \boldsymbol{h}_{P A}
 $$
+这里我们将总风险和主动风险都分解为共同因子部分和特异部分，这样做的原因是因为因子风险和特异风险之间是不相关的。
