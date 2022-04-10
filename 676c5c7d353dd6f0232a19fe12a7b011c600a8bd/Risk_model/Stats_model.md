@@ -1,6 +1,6 @@
 ## **Statistical Risk Models**
 
-这里我们主要参考Z.Kakushadze和W.Yu的论文[Statistical Risk Model](Kakushadze.pdf)中对统计风险的描述。
+这里我们主要参考Z.Kakushadze和W.Yu的论文[Statistical Risk Model](https://jefferylin1998.github.io/676c5c7d353dd6f0232a19fe12a7b011c600a8bd/Risk_model/Kakushadze.pdf)中对统计风险的描述。
 
 ### **样本协方差矩阵**
 
@@ -48,6 +48,6 @@ $$
 \\
 \begin{aligned}
 &\Omega_{i A}=\sqrt{\lambda^{(A)}} V_{i}^{(A)}, \quad A=1, \ldots, K \\
-&\Phi_{A B}=\delta_{A B}
+&\Phi_{A B}=\delta_{A B}.
 \end{aligned}
 $$
