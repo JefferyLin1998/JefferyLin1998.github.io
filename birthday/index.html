@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#fce4ec">
+  <title>给你的生日惊喜</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div id="hearts-bg" aria-hidden="true"></div>
+
+  <main class="app">
+    <!-- 封面 -->
+    <section id="screen-cover" class="screen screen-cover active">
+      <div class="cover-icon" aria-hidden="true">💝</div>
+      <h1>嗨，<span id="her-name-cover">宝贝</span></h1>
+      <p class="subtitle">有人为你准备了一点小惊喜<br>点击开始，慢慢拆开吧</p>
+      <button type="button" class="btn-primary" id="btn-start">开始冒险</button>
+    </section>
+
+    <!-- 进度（非封面/终章显示） -->
+    <div id="progress-wrap" class="hidden" style="width:100%; margin-bottom: 8px;">
+      <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+      <p id="step-label" class="step-label"></p>
+    </div>
+
+    <!-- 暗号 -->
+    <section id="screen-secret" class="screen">
+      <div class="card">
+        <h2>🔐 先输入我们的暗号</h2>
+        <p class="subtitle">答对了才能继续哦</p>
+        <p id="secret-hint" class="subtitle" style="margin-top:12px; color: var(--primary);"></p>
+        <div class="input-wrap">
+          <input type="text" id="secret-input" placeholder="在这里输入" autocomplete="off" enterkeyhint="go">
+        </div>
+        <p id="secret-error" class="hint-msg"></p>
+        <button type="button" class="btn-primary" id="btn-secret">确认</button>
+      </div>
+    </section>
+
+    <!-- 问答 -->
+    <section id="screen-quiz" class="screen">
+      <div class="card">
+        <p id="question-text" class="question-text"></p>
+        <div id="options" class="options"></div>
+        <p id="hint-msg" class="hint-msg"></p>
+        <button type="button" class="btn-primary hidden" id="next-quiz-btn" disabled>下一题</button>
+      </div>
+    </section>
+
+    <!-- 情书 -->
+    <section id="screen-letter" class="screen">
+      <div class="card">
+        <h2>💌 写给你的信</h2>
+        <div id="days-together" class="days-together hidden">
+          我们已经在一起
+          <strong id="days-count">0</strong>
+          天啦
+        </div>
+        <div id="letter-body" class="letter-body"></div>
+        <button type="button" class="btn-primary hidden" id="letter-next-btn">收下祝福</button>
+      </div>
+    </section>
+
+    <!-- 终章 -->
+    <section id="screen-finale" class="screen screen-finale">
+      <div class="finale-cake" id="finale-cake" role="button" aria-label="点击蛋糕放烟花">🎂</div>
+      <h1 id="finale-title">生日快乐！</h1>
+      <p id="finale-subtitle" class="subtitle"></p>
+      <p class="subtitle" style="margin-top:16px;">点击蛋糕，再放一次烟花 ✨</p>
+    </section>
+  </main>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
