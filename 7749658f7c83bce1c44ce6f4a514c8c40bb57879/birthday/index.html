@@ -5,34 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#fce4ec">
+  <meta name="theme-color" content="#1a3d2e">
   <title>给你的生日惊喜</title>
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
   <div id="hearts-bg" aria-hidden="true"></div>
+  <div id="stars-bg" aria-hidden="true"></div>
 
   <main class="app">
     <!-- 封面 -->
     <section id="screen-cover" class="screen screen-cover active">
-      <div class="cover-icon" aria-hidden="true">💝</div>
+      <div class="cover-icon" aria-hidden="true">🚄</div>
       <h1>嗨，<span id="her-name-cover">宝贝</span></h1>
-      <p class="subtitle">有人为你准备了一点小惊喜<br>点击开始，慢慢拆开吧</p>
-      <button type="button" class="btn-primary" id="btn-start">开始冒险</button>
+      <p class="subtitle">有人为你订了一张特别的高铁票<br>从长沙出发，途经我们走过的每一座城市</p>
+      <button type="button" class="btn-primary" id="btn-start">开始旅程</button>
     </section>
 
-    <!-- 进度（非封面/终章显示） -->
-    <div id="progress-wrap" class="hidden" style="width:100%; margin-bottom: 8px;">
-      <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
-      <p id="step-label" class="step-label"></p>
-    </div>
+    <!-- 高铁动线主界面 -->
+    <section id="screen-journey" class="screen screen-journey">
+      <header class="journey-header">
+        <div class="hsr-badge">
+          <span class="hsr-logo">CR</span>
+          <span class="hsr-train-no" id="journey-train-no">G1314</span>
+        </div>
+        <h1 id="journey-title">G1314 · 爱的旅程</h1>
+        <p id="journey-subtitle" class="journey-subtitle">长沙出发，每一站都是我们一起走过的路</p>
+      </header>
 
-    <!-- 暗号 -->
-    <section id="screen-secret" class="screen">
-      <div class="card">
-        <h2>🔐 先输入我们的暗号</h2>
+      <div class="rail-map-wrap" id="rail-map-wrap">
+        <div class="rail-map hsr-route-panel" id="rail-map">
+          <div class="hsr-route-track" aria-hidden="true">
+            <div class="rail-track-base"></div>
+            <div class="rail-track-dash"></div>
+            <div class="rail-line-fill" id="rail-line-fill"></div>
+          </div>
+          <div class="hsr-train-wrap" id="rail-train">
+            <div class="hsr-speed-lines" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="hsr-train-body">
+              <div class="hsr-train-nose"></div>
+              <div class="hsr-train-mid">
+                <span class="hsr-window"></span>
+                <span class="hsr-window"></span>
+                <span class="hsr-window"></span>
+              </div>
+              <div class="hsr-train-tail"></div>
+            </div>
+            <div class="hsr-wheels" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="rail-stations" id="rail-stations"></div>
+        </div>
+      </div>
+
+      <div class="station-focus card" id="station-focus">
+        <div class="focus-station-label" id="focus-station-label">第一站</div>
+        <span class="focus-icon" id="focus-icon">🌶️</span>
+        <h2 id="focus-city">长沙</h2>
+        <p id="focus-tagline" class="subtitle">故事从这里开始</p>
+        <p id="focus-memory" class="focus-memory"></p>
+        <button type="button" class="btn-primary" id="btn-enter-station">进入这一站</button>
+      </div>
+
+      <div class="journey-nav">
+        <button type="button" class="nav-btn" id="btn-prev" aria-label="上一站">‹</button>
+        <div class="journey-dots" id="journey-dots"></div>
+        <button type="button" class="nav-btn" id="btn-next" aria-label="下一站">›</button>
+      </div>
+      <p class="journey-hint">点击城市或左右切换，看高铁开向下一站</p>
+    </section>
+
+    <!-- 浮层：暗号（长沙） -->
+    <section id="overlay-secret" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="secret">← 返回旅程</button>
+        <span class="overlay-badge" id="overlay-secret-city">长沙</span>
+      </div>
+      <div class="card overlay-card">
+        <h2>🔐 <span id="secret-station-title">长沙站</span></h2>
         <p class="subtitle">答对了才能继续哦</p>
-        <p id="secret-hint" class="subtitle" style="margin-top:12px; color: var(--primary);"></p>
+        <p id="secret-hint" class="subtitle secret-hint"></p>
         <div class="input-wrap">
           <input type="text" id="secret-input" placeholder="在这里输入" autocomplete="off" enterkeyhint="go">
         </div>
@@ -41,36 +96,65 @@
       </div>
     </section>
 
-    <!-- 问答 -->
-    <section id="screen-quiz" class="screen">
-      <div class="card">
-        <p id="question-text" class="question-text"></p>
-        <div id="options" class="options"></div>
-        <p id="hint-msg" class="hint-msg"></p>
-        <button type="button" class="btn-primary hidden" id="next-quiz-btn" disabled>下一题</button>
+    <!-- 浮层：回忆（青海等） -->
+    <section id="overlay-memory" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="memory">← 返回旅程</button>
+        <span class="overlay-badge" id="overlay-memory-city"></span>
+      </div>
+      <div class="card overlay-card memory-card">
+        <span class="memory-icon" id="memory-icon">🏔️</span>
+        <h2 id="memory-city"></h2>
+        <p id="memory-tagline" class="subtitle"></p>
+        <div class="memory-body" id="memory-body"></div>
+        <button type="button" class="btn-primary" id="memory-done-btn">打卡这一站 ✓</button>
       </div>
     </section>
 
-    <!-- 情书 -->
-    <section id="screen-letter" class="screen">
-      <div class="card">
-        <h2>💌 写给你的信</h2>
+    <!-- 浮层：问答（上海） -->
+    <section id="overlay-quiz" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="quiz">← 返回旅程</button>
+        <span id="quiz-progress" class="overlay-badge"></span>
+      </div>
+      <div class="card overlay-card">
+        <h2 id="quiz-station-title">🌃 上海站 · 回忆问答</h2>
+        <p id="question-text" class="question-text"></p>
+        <div id="options" class="options"></div>
+        <p id="hint-msg" class="hint-msg"></p>
+      </div>
+    </section>
+
+    <!-- 浮层：情书（三亚） -->
+    <section id="overlay-letter" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="letter">← 返回旅程</button>
+        <span class="overlay-badge">🌊 三亚</span>
+      </div>
+      <div class="card overlay-card">
+        <h2>💌 三亚站 · 写给你的信</h2>
         <div id="days-together" class="days-together hidden">
           我们已经在一起
           <strong id="days-count">0</strong>
           天啦
         </div>
         <div id="letter-body" class="letter-body"></div>
-        <button type="button" class="btn-primary hidden" id="letter-next-btn">收下祝福</button>
+        <button type="button" class="btn-primary hidden" id="letter-done-btn">读完了，返回旅程</button>
       </div>
     </section>
 
-    <!-- 终章 -->
-    <section id="screen-finale" class="screen screen-finale">
-      <div class="finale-cake" id="finale-cake" role="button" aria-label="点击蛋糕放烟花">🎂</div>
-      <h1 id="finale-title">生日快乐！</h1>
-      <p id="finale-subtitle" class="subtitle"></p>
-      <p class="subtitle" style="margin-top:16px;">点击蛋糕，再放一次烟花 ✨</p>
+    <!-- 浮层：终章（云南） -->
+    <section id="overlay-finale" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="finale">← 返回旅程</button>
+        <span class="overlay-badge">🌸 云南</span>
+      </div>
+      <div class="overlay-card finale-card">
+        <div class="finale-cake" id="finale-cake" role="button" aria-label="点击蛋糕放烟花">🎂</div>
+        <h1 id="finale-title">生日快乐！</h1>
+        <p id="finale-subtitle" class="subtitle"></p>
+        <p class="subtitle">点击蛋糕，放烟花 ✨</p>
+      </div>
     </section>
   </main>
 
