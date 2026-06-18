@@ -1,13 +1,14 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "birthday-gift-progress-v3";
+  var STORAGE_KEY = "birthday-gift-progress-v4";
 
   var content = null;
   var stationIndex = 0;
   var quizIndex = 0;
   var touchStartX = 0;
   var completedStations = {};
+  var unlockedUpTo = 0;
   var activeStation = null;
   var trainRunTimer = null;
 
@@ -34,6 +35,10 @@
     el.journeyTitle = $("journey-title");
     el.journeySubtitle = $("journey-subtitle");
     el.journeyTrainNo = $("journey-train-no");
+    el.btnNext = $("btn-next");
+    el.btnPrev = $("btn-prev");
+    el.btnEnter = $("btn-enter-station");
+    el.journeyHint = $("journey-hint");
     el.herNameCover = $("her-name-cover");
     el.secretHint = $("secret-hint");
     el.secretInput = $("secret-input");
@@ -95,6 +100,7 @@
           stationIndex: stationIndex,
           quizIndex: quizIndex,
           completed: completedStations,
+          unlockedUpTo: unlockedUpTo,
         })
       );
     } catch (e) {}
@@ -109,9 +115,45 @@
   }
 
   function markCompleted(stationId) {
+    if (completedStations[stationId]) return false;
     completedStations[stationId] = true;
+
+    var idx = findStationIndexById(stationId);
+    if (idx > -1) {
+      var count = content.stations.length;
+      if (idx + 1 > unlockedUpTo) {
+        unlockedUpTo = Math.min(idx + 1, count - 1);
+      }
+    }
+
     saveProgress();
     updateStationStates();
+    return true;
+  }
+
+  function findStationIndexById(id) {
+    for (var i = 0; i < content.stations.length; i++) {
+      if (content.stations[i].id === id) return i;
+    }
+    return -1;
+  }
+
+  function isStationUnlocked(index) {
+    return index <= unlockedUpTo;
+  }
+
+  function advanceToNextStation() {
+    var count = content.stations.length;
+    if (stationIndex < unlockedUpTo) {
+      goToStation(stationIndex + 1, true);
+      return;
+    }
+    if (stationIndex + 1 < count) {
+      unlockedUpTo = Math.min(stationIndex + 1, count - 1);
+      saveProgress();
+      updateStationStates();
+      goToStation(stationIndex + 1, true);
+    }
   }
 
   function showCover() {
@@ -143,12 +185,17 @@
         '<span class="station-dot-wrap">' +
         '<span class="station-dot"></span>' +
         '<span class="station-check hidden">✓</span>' +
+        '<span class="station-lock">🔒</span>' +
         "</span>" +
         '<span class="station-icon">' +
         station.icon +
         "</span>";
 
       node.addEventListener("click", function () {
+        if (i > unlockedUpTo) {
+          flashLockedHint();
+          return;
+        }
         goToStation(i, true);
       });
       el.stationsContainer.appendChild(node);
@@ -171,7 +218,11 @@
 
   function goToStation(index, animate) {
     var count = content.stations.length;
-    stationIndex = ((index % count) + count) % count;
+    var target = Math.max(0, Math.min(index, count - 1));
+    if (target > unlockedUpTo) {
+      target = unlockedUpTo;
+    }
+    stationIndex = target;
     updateStationFocus();
     positionTrain(animate);
     saveProgress();
@@ -234,6 +285,61 @@
     nodes.forEach(function (node, i) {
       node.classList.toggle("is-active", i === stationIndex);
     });
+
+    updateJourneyHint();
+    updateNavButtons();
+  }
+
+  function updateJourneyHint() {
+    if (!el.journeyHint) return;
+    var count = content.stations.length;
+    var station = content.stations[stationIndex];
+    var isDone = !!completedStations[station.id];
+    var isLast = stationIndex === count - 1;
+
+    if (el.btnEnter) {
+      if (isLast && isDone) {
+        el.btnEnter.textContent = "再来一次 🎂";
+      } else if (isDone) {
+        el.btnEnter.textContent = "再回忆一下";
+      } else if (isLast) {
+        el.btnEnter.textContent = "进入终点站";
+      } else {
+        el.btnEnter.textContent = "进入这一站";
+      }
+    }
+
+    if (isLast && isDone) {
+      el.journeyHint.textContent = "🎉 全程通关！感谢你和我的这段旅程";
+      return;
+    }
+
+    if (isDone) {
+      el.journeyHint.textContent = "这一站已打卡 ✓ 进入下一站继续旅程";
+    } else {
+      el.journeyHint.textContent = "完成当前挑战，解锁下一站";
+    }
+  }
+
+  function updateNavButtons() {
+    if (!el.btnPrev || !el.btnNext) return;
+    var count = content.stations.length;
+    el.btnPrev.classList.toggle("is-disabled", stationIndex <= 0);
+    el.btnNext.classList.toggle("is-disabled", stationIndex >= unlockedUpTo);
+    el.btnNext.classList.toggle("hidden", stationIndex >= count - 1);
+  }
+
+  var lockedHintTimer = null;
+  function flashLockedHint() {
+    if (!el.journeyHint) return;
+    var original = el.journeyHint.textContent;
+    el.journeyHint.textContent = "🔒 下一站还没解锁，先完成当前这一站吧～";
+    el.journeyHint.classList.add("locked-flash");
+    if (lockedHintTimer) clearTimeout(lockedHintTimer);
+    lockedHintTimer = setTimeout(function () {
+      el.journeyHint.classList.remove("locked-flash");
+      updateJourneyHint();
+    }, 2000);
   }
 
   function updateStationStates() {
@@ -243,12 +349,24 @@
       if (!node) return;
       var done = !!completedStations[station.id];
       node.classList.toggle("is-done", done);
+      node.classList.toggle("is-locked", i > unlockedUpTo);
+
       var check = node.querySelector(".station-check");
       if (check) check.classList.toggle("hidden", !done);
+
+      var lock = node.querySelector(".station-lock");
+      if (lock) lock.classList.toggle("hidden", i <= unlockedUpTo);
+
+      var iconSpan = node.querySelector(".station-icon");
+      if (iconSpan) iconSpan.classList.toggle("hidden", i > unlockedUpTo);
     });
   }
 
   function enterCurrentStation() {
+    if (stationIndex > unlockedUpTo) {
+      flashLockedHint();
+      return;
+    }
     var station = content.stations[stationIndex];
     activeStation = station;
     openOverlay(station.type, station);
@@ -321,13 +439,13 @@
     var ans = normalizeAnswer(content.secretAnswer);
     var station = activeStation || content.stations[0];
     if (val === ans) {
-      el.secretError.textContent = "答对啦！❤️ 下一站：青海";
+      el.secretError.textContent = "答对啦！❤️ 高铁即将发车…";
       markCompleted(station.id);
       setTimeout(function () {
         closeOverlay("secret");
         el.secretInput.value = "";
         el.secretError.textContent = "";
-        goToStation(1, true);
+        advanceToNextStation();
       }, 900);
     } else {
       el.secretError.textContent = "不对哦，再想想～";
@@ -376,6 +494,7 @@
           quizIndex = 0;
           saveProgress();
           closeOverlay("quiz");
+          advanceToNextStation();
         } else {
           renderQuestion();
         }
@@ -485,7 +604,13 @@
       function (e) {
         var diff = e.changedTouches[0].screenX - touchStartX;
         if (Math.abs(diff) > 40) {
-          goToStation(stationIndex + (diff < 0 ? 1 : -1), true);
+          var next = stationIndex + (diff < 0 ? 1 : -1);
+          if (next > unlockedUpTo) {
+            flashLockedHint();
+            return;
+          }
+          if (next < 0) return;
+          goToStation(next, true);
         }
       },
       { passive: true }
@@ -496,9 +621,14 @@
     $("btn-start").addEventListener("click", showJourney);
     $("btn-enter-station").addEventListener("click", enterCurrentStation);
     $("btn-prev").addEventListener("click", function () {
+      if (stationIndex <= 0) return;
       goToStation(stationIndex - 1, true);
     });
     $("btn-next").addEventListener("click", function () {
+      if (stationIndex >= unlockedUpTo) {
+        flashLockedHint();
+        return;
+      }
       goToStation(stationIndex + 1, true);
     });
     $("btn-secret").addEventListener("click", checkSecret);
@@ -512,11 +642,13 @@
       });
       if (station) markCompleted(station.id);
       closeOverlay("letter");
+      advanceToNextStation();
     });
 
     $("memory-done-btn").addEventListener("click", function () {
       if (activeStation) markCompleted(activeStation.id);
       closeOverlay("memory");
+      advanceToNextStation();
     });
 
     el.cake.addEventListener("click", function () {
@@ -526,6 +658,12 @@
         return s.type === "finale";
       });
       if (station) markCompleted(station.id);
+      var count = content.stations.length;
+      if (stationIndex === count - 1) {
+        unlockedUpTo = count - 1;
+        saveProgress();
+        updateStationStates();
+      }
       setTimeout(function () {
         el.cake.classList.remove("tapped");
       }, 600);
@@ -550,6 +688,7 @@
       stationIndex = saved.stationIndex || 0;
       quizIndex = saved.quizIndex || 0;
       completedStations = saved.completed || {};
+      unlockedUpTo = typeof saved.unlockedUpTo === "number" ? saved.unlockedUpTo : 0;
       if (saved.seenCover) {
         showJourney();
       } else {

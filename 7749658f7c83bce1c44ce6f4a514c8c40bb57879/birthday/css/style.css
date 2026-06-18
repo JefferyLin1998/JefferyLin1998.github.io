@@ -641,6 +641,34 @@ h2 {
   z-index: 3;
 }
 
+.station-lock {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  z-index: 4;
+  opacity: 0.8;
+  filter: grayscale(0.3);
+}
+
+.station-lock.hidden {
+  display: none !important;
+}
+
+.rail-station.is-locked {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.rail-station.is-locked .station-city {
+  color: rgba(241, 248, 233, 0.4);
+}
+
+.rail-station.is-locked:active {
+  background: transparent;
+}
+
 .station-icon {
   position: absolute;
   top: 66px;
@@ -739,6 +767,12 @@ h2 {
   background: rgba(67, 160, 71, 0.35);
 }
 
+.nav-btn.is-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  border-color: rgba(129, 199, 132, 0.2);
+}
+
 .journey-dots {
   display: flex;
   gap: 8px;
@@ -766,6 +800,18 @@ h2 {
   font-size: 0.78rem;
   color: rgba(241, 248, 233, 0.42);
   margin-top: 2px;
+  transition: color 0.3s;
+}
+
+.journey-hint.locked-flash {
+  color: var(--accent);
+  animation: hint-shake 0.4s ease;
+}
+
+@keyframes hint-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
 }
 
 /* ── 回忆浮层 ── */
