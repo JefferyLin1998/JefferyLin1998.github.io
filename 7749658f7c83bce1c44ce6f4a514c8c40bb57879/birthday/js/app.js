@@ -1,11 +1,14 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "birthday-gift-progress-v4";
+  var STORAGE_KEY = "birthday-gift-progress-v7";
 
   var content = null;
   var stationIndex = 0;
   var quizIndex = 0;
+  var judgeStreak = 0;
+  var judgeUsedInSession = [];
+  var judgeCurrentStmt = null;
   var touchStartX = 0;
   var completedStations = {};
   var unlockedUpTo = 0;
@@ -40,9 +43,11 @@
     el.btnEnter = $("btn-enter-station");
     el.journeyHint = $("journey-hint");
     el.herNameCover = $("her-name-cover");
-    el.secretHint = $("secret-hint");
-    el.secretInput = $("secret-input");
-    el.secretError = $("secret-error");
+    el.judgeChat = $("judge-chat");
+    el.judgeProgress = $("judge-progress");
+    el.judgeFeedback = $("judge-feedback");
+    el.judgeIntro = $("judge-intro");
+    el.judgeTitle = $("judge-title");
     el.questionText = $("question-text");
     el.options = $("options");
     el.hintMsg = $("hint-msg");
@@ -76,7 +81,6 @@
     el.journeyTitle.textContent = content.journey.title;
     el.journeySubtitle.textContent = content.journey.subtitle;
     el.journeyTrainNo.textContent = content.journey.trainNo || "G1314";
-    el.secretHint.textContent = content.secretHint;
     el.finaleTitle.textContent = content.finale.title;
     el.finaleSubtitle.textContent = content.finale.subtitle;
 
@@ -99,6 +103,7 @@
           seenCover: true,
           stationIndex: stationIndex,
           quizIndex: quizIndex,
+          judgeStreak: judgeStreak,
           completed: completedStations,
           unlockedUpTo: unlockedUpTo,
         })
@@ -112,6 +117,35 @@
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return null;
+  }
+
+  function getStationOrdinalLabel(index) {
+    var station = content.stations[index];
+    var cn = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+    if (station && station.id === "tobecontinued") {
+      return "终点站 · 未完待续";
+    }
+    if (index === content.stations.length - 1) {
+      return "终点站";
+    }
+    if (index < cn.length) {
+      return "第" + cn[index] + "站";
+    }
+    return "第 " + (index + 1) + " 站";
+  }
+
+  function scrollStationIntoView(index, smooth) {
+    var nodes = el.stationsContainer.querySelectorAll(".rail-station");
+    var wrap = el.railMapWrap;
+    if (!nodes[index] || !wrap) return;
+    var node = nodes[index];
+    var wrapRect = wrap.getBoundingClientRect();
+    var nodeRect = node.getBoundingClientRect();
+    var target =
+      wrap.scrollLeft +
+      (nodeRect.left + nodeRect.width / 2) -
+      (wrapRect.left + wrapRect.width / 2);
+    wrap.scrollTo({ left: target, behavior: smooth ? "smooth" : "auto" });
   }
 
   function markCompleted(stationId) {
@@ -166,10 +200,16 @@
     el.journey.classList.add("active");
     goToStation(stationIndex, false);
     saveProgress();
+    requestAnimationFrame(function () {
+      scrollStationIntoView(stationIndex, false);
+    });
   }
 
   function buildRailMap() {
     var stations = content.stations;
+    var minWidth = Math.max(320, stations.length * 58 + 48);
+    el.railMap.style.minWidth = minWidth + "px";
+
     el.stationsContainer.innerHTML = "";
     el.dots.innerHTML = "";
 
@@ -205,6 +245,10 @@
       dot.className = "journey-dot";
       dot.setAttribute("aria-label", station.city);
       dot.addEventListener("click", function () {
+        if (i > unlockedUpTo) {
+          flashLockedHint();
+          return;
+        }
         goToStation(i, true);
       });
       el.dots.appendChild(dot);
@@ -226,6 +270,9 @@
     updateStationFocus();
     positionTrain(animate);
     saveProgress();
+    if (animate) {
+      scrollStationIntoView(stationIndex, true);
+    }
   }
 
   function positionTrain(animate) {
@@ -247,12 +294,15 @@
     el.train.classList.toggle("no-transition", !animate);
     el.train.style.left = left + "px";
     el.train.style.top = top + "px";
+    el.train.style.transform = "";
 
     if (animate) {
       el.train.classList.add("is-running");
+      el.railMap.classList.add("is-train-running");
       if (trainRunTimer) clearTimeout(trainRunTimer);
       trainRunTimer = setTimeout(function () {
         el.train.classList.remove("is-running");
+        el.railMap.classList.remove("is-train-running");
       }, 750);
     }
 
@@ -263,14 +313,15 @@
     }
 
     var fillPct = count <= 1 ? 100 : (stationIndex / (count - 1)) * 100;
-    el.lineFill.style.width = fillPct + "%";
+    if (el.lineFill) {
+      el.lineFill.style.width = fillPct + "%";
+    }
   }
 
   function updateStationFocus() {
     var station = content.stations[stationIndex];
-    var ordinals = ["第一站", "第二站", "第三站", "第四站", "第五站", "第六站"];
 
-    el.focusStationLabel.textContent = ordinals[stationIndex] || "第 " + (stationIndex + 1) + " 站";
+    el.focusStationLabel.textContent = getStationOrdinalLabel(stationIndex);
     el.focusIcon.textContent = station.icon;
     el.focusCity.textContent = station.city;
     el.focusTagline.textContent = station.tagline;
@@ -379,9 +430,8 @@
     overlay.hidden = false;
     document.body.classList.add("overlay-open");
 
-    if (type === "secret" && station) {
-      $("overlay-secret-city").textContent = station.city;
-      $("secret-station-title").textContent = station.city + "站";
+    if (type === "judge") {
+      startJudgeGame();
     }
 
     if (type === "memory" && station) {
@@ -400,10 +450,18 @@
     }
 
     if (type === "letter") {
+      if (station) {
+        var letterBadge = $("overlay-letter-city");
+        if (letterBadge) letterBadge.textContent = station.icon + " " + station.city;
+      }
       startLetter();
     }
 
     if (type === "finale") {
+      if (station) {
+        var finaleBadge = $("overlay-finale-city");
+        if (finaleBadge) finaleBadge.textContent = station.icon + " " + station.city;
+      }
       spawnConfetti();
     }
   }
@@ -416,7 +474,7 @@
       document.body.classList.remove("overlay-open");
     }
     requestAnimationFrame(function () {
-      positionTrain(true);
+      positionTrain(false);
     });
   }
 
@@ -428,28 +486,194 @@
     activeStation = null;
   }
 
-  function normalizeAnswer(s) {
-    return String(s || "")
-      .trim()
-      .toLowerCase();
+
+  function getJudgeData() {
+    return content.liuyangJudge || { questionBank: [], characters: [], passCount: 6 };
   }
 
-  function checkSecret() {
-    var val = normalizeAnswer(el.secretInput.value);
-    var ans = normalizeAnswer(content.secretAnswer);
-    var station = activeStation || content.stations[0];
-    if (val === ans) {
-      el.secretError.textContent = "答对啦！❤️ 高铁即将发车…";
-      markCompleted(station.id);
-      setTimeout(function () {
-        closeOverlay("secret");
-        el.secretInput.value = "";
-        el.secretError.textContent = "";
-        advanceToNextStation();
-      }, 900);
+  function getJudgeBank() {
+    var data = getJudgeData();
+    return data.questionBank || data.statements || [];
+  }
+
+  function getJudgePassCount() {
+    var data = getJudgeData();
+    return data.passCount || 6;
+  }
+
+  function pickRandomStatement() {
+    var bank = getJudgeBank();
+    if (!bank.length) return null;
+
+    var available = [];
+    for (var i = 0; i < bank.length; i++) {
+      if (judgeUsedInSession.indexOf(i) === -1) available.push(i);
+    }
+    if (!available.length) {
+      judgeUsedInSession = [];
+      for (var j = 0; j < bank.length; j++) available.push(j);
+    }
+
+    var pick = available[Math.floor(Math.random() * available.length)];
+    judgeUsedInSession.push(pick);
+    return bank[pick];
+  }
+
+  function getStatementSide(stmt) {
+    if (stmt && typeof stmt.speaker === "number") {
+      return stmt.speaker === 0 ? "left" : "right";
+    }
+    return judgeStreak % 2 === 0 ? "left" : "right";
+  }
+
+  function appendJudgeBubble(stmt, side) {
+    var data = getJudgeData();
+    if (!stmt) return;
+    var char = data.characters[stmt.speaker] || { name: "娃", avatar: "" };
+    var isRight = side === "right";
+
+    var row = document.createElement("div");
+    row.className = "chat-row " + (isRight ? "chat-row-right" : "chat-row-left");
+
+    var avatar = document.createElement("img");
+    avatar.className = "chat-avatar";
+    avatar.src = char.avatar;
+    avatar.alt = char.name;
+    avatar.loading = "lazy";
+
+    var body = document.createElement("div");
+    body.className = "chat-body";
+
+    var name = document.createElement("span");
+    name.className = "chat-name";
+    name.textContent = char.name;
+
+    var bubble = document.createElement("div");
+    bubble.className = "chat-bubble";
+    bubble.textContent = stmt.text;
+
+    body.appendChild(name);
+    body.appendChild(bubble);
+
+    if (isRight) {
+      row.appendChild(body);
+      row.appendChild(avatar);
     } else {
-      el.secretError.textContent = "不对哦，再想想～";
-      el.secretInput.value = "";
+      row.appendChild(avatar);
+      row.appendChild(body);
+    }
+
+    el.judgeChat.appendChild(row);
+  }
+
+  function appendJudgeResult(isCorrect, customText) {
+    var row = document.createElement("div");
+    row.className = "chat-row chat-row-system";
+    var bubble = document.createElement("div");
+    bubble.className = "chat-system-msg" + (isCorrect ? "" : " chat-system-msg-fail");
+    bubble.textContent =
+      customText || (isCorrect ? "✓ 判断正确" : "✗ 答错了，从头再来");
+    row.appendChild(bubble);
+    el.judgeChat.appendChild(row);
+  }
+
+  function scrollJudgeChatToBottom() {
+    if (!el.judgeChat) return;
+    requestAnimationFrame(function () {
+      el.judgeChat.scrollTop = el.judgeChat.scrollHeight;
+    });
+  }
+
+  function updateJudgeProgress() {
+    var passCount = getJudgePassCount();
+    if (el.judgeProgress) {
+      el.judgeProgress.textContent = "连对 " + judgeStreak + " / " + passCount;
+    }
+  }
+
+  function setJudgeActionsEnabled(enabled) {
+    $("btn-judge-true").disabled = !enabled;
+    $("btn-judge-false").disabled = !enabled;
+  }
+
+  function showCurrentJudgeQuestion() {
+    judgeCurrentStmt = pickRandomStatement();
+    if (!judgeCurrentStmt) {
+      el.judgeFeedback.textContent = "题库为空，请先配置题目～";
+      setJudgeActionsEnabled(false);
+      return;
+    }
+    appendJudgeBubble(judgeCurrentStmt, getStatementSide(judgeCurrentStmt));
+    updateJudgeProgress();
+    scrollJudgeChatToBottom();
+  }
+
+  function restartJudgeRound() {
+    judgeStreak = 0;
+    judgeUsedInSession = [];
+    judgeCurrentStmt = null;
+    saveProgress();
+    el.judgeChat.innerHTML = "";
+    el.judgeFeedback.textContent = "答错了，从头再来！加油～";
+    showCurrentJudgeQuestion();
+    setJudgeActionsEnabled(true);
+  }
+
+  function startJudgeGame() {
+    var data = getJudgeData();
+    if (el.judgeTitle) {
+      el.judgeTitle.textContent = data.title || "浏阳站 · 真假大对决";
+    }
+    if (el.judgeIntro) {
+      el.judgeIntro.textContent = data.intro || "";
+    }
+    el.judgeFeedback.textContent = "";
+    el.judgeChat.innerHTML = "";
+    setJudgeActionsEnabled(true);
+    showCurrentJudgeQuestion();
+  }
+
+  function onJudgeAnswer(userSaysTrue) {
+    var stmt = judgeCurrentStmt;
+    if (!stmt) return;
+
+    setJudgeActionsEnabled(false);
+    var correct = userSaysTrue === stmt.isTrue;
+
+    if (correct) {
+      judgeStreak += 1;
+      saveProgress();
+      el.judgeFeedback.textContent = "答对啦！❤️";
+      appendJudgeResult(true);
+      scrollJudgeChatToBottom();
+      updateJudgeProgress();
+
+      setTimeout(function () {
+        el.judgeFeedback.textContent = "";
+        var passCount = getJudgePassCount();
+
+        if (judgeStreak >= passCount) {
+          var station = activeStation || content.stations.find(function (s) {
+            return s.type === "judge";
+          });
+          if (station) markCompleted(station.id);
+          judgeStreak = 0;
+          judgeUsedInSession = [];
+          judgeCurrentStmt = null;
+          saveProgress();
+          closeOverlay("judge");
+          advanceToNextStation();
+          return;
+        }
+
+        showCurrentJudgeQuestion();
+        setJudgeActionsEnabled(true);
+      }, 700);
+    } else {
+      el.judgeFeedback.textContent = stmt.wrongHint || "不对哦～";
+      appendJudgeResult(false);
+      scrollJudgeChatToBottom();
+      setTimeout(restartJudgeRound, 1400);
     }
   }
 
@@ -579,16 +803,17 @@
 
   function initStars() {
     var container = $("stars-bg");
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 12; i++) {
       var star = document.createElement("span");
       star.className = "star-twinkle";
       star.textContent = "✦";
       star.style.left = Math.random() * 100 + "%";
       star.style.top = Math.random() * 40 + "%";
-      star.style.animationDelay = Math.random() * 3 + "s";
       container.appendChild(star);
     }
   }
+
+  var resizeTimer = null;
 
   function bindSwipe() {
     var wrap = el.railMapWrap;
@@ -631,9 +856,11 @@
       }
       goToStation(stationIndex + 1, true);
     });
-    $("btn-secret").addEventListener("click", checkSecret);
-    el.secretInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") checkSecret();
+    $("btn-judge-true").addEventListener("click", function () {
+      onJudgeAnswer(true);
+    });
+    $("btn-judge-false").addEventListener("click", function () {
+      onJudgeAnswer(false);
     });
 
     $("letter-done-btn").addEventListener("click", function () {
@@ -676,9 +903,11 @@
     });
 
     window.addEventListener("resize", function () {
-      if (el.journey.classList.contains("active")) {
+      if (!el.journey.classList.contains("active")) return;
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
         positionTrain(false);
-      }
+      }, 150);
     });
   }
 
@@ -687,6 +916,7 @@
     if (saved) {
       stationIndex = saved.stationIndex || 0;
       quizIndex = saved.quizIndex || 0;
+      judgeStreak = saved.judgeStreak || 0;
       completedStations = saved.completed || {};
       unlockedUpTo = typeof saved.unlockedUpTo === "number" ? saved.unlockedUpTo : 0;
       if (saved.seenCover) {
