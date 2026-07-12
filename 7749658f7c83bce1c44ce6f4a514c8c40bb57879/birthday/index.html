@@ -103,6 +103,28 @@
       </div>
     </section>
 
+    <!-- 浮层：拼图（北海） -->
+    <section id="overlay-puzzle" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="puzzle">← 返回旅程</button>
+        <span class="overlay-badge" id="puzzle-status">0 步</span>
+      </div>
+      <div class="card overlay-card puzzle-card">
+        <h2 id="puzzle-title">🌊 北海站 · 拼图</h2>
+        <p id="puzzle-intro" class="subtitle"></p>
+        <div class="puzzle-board" id="puzzle-board" role="grid" aria-label="滑动拼图"></div>
+        <p id="puzzle-msg" class="hint-msg"></p>
+        <div class="puzzle-actions">
+          <button type="button" class="btn-secondary" id="btn-puzzle-shuffle">重新打乱</button>
+          <button type="button" class="btn-secondary" id="btn-puzzle-peek">看原图</button>
+          <button type="button" class="btn-primary hidden" id="btn-puzzle-done">打卡这一站 ✓</button>
+        </div>
+        <div class="puzzle-peek hidden" id="puzzle-peek" aria-hidden="true">
+          <img id="puzzle-peek-img" alt="原图参考" />
+        </div>
+      </div>
+    </section>
+
     <!-- 浮层：回忆（青海等） -->
     <section id="overlay-memory" class="project-overlay" hidden>
       <div class="overlay-topbar">
@@ -129,6 +151,122 @@
         <p id="question-text" class="question-text"></p>
         <div id="options" class="options"></div>
         <p id="hint-msg" class="hint-msg"></p>
+      </div>
+    </section>
+
+    <!-- 浮层：求婚仪式（上海） -->
+    <section id="overlay-proposal" class="project-overlay overlay-proposal" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="proposal">← 返回旅程</button>
+        <span class="overlay-badge" id="proposal-stage">那一刻</span>
+      </div>
+
+      <div class="proposal-scene" id="proposal-scene">
+        <!-- 暗夜背景 + 星星 -->
+        <div class="proposal-stars" aria-hidden="true"></div>
+
+        <!-- 阶段 1：引子 -->
+        <div class="proposal-phase proposal-phase-intro active" id="proposal-phase-intro">
+          <div class="proposal-moon" aria-hidden="true">🌙</div>
+          <p class="proposal-intro-text" id="proposal-intro-text"></p>
+          <button type="button" class="btn-primary" id="btn-proposal-start">回到那一刻</button>
+        </div>
+
+        <!-- 阶段 2：划火柴点蜡烛 -->
+        <div class="proposal-phase proposal-phase-match" id="proposal-phase-match">
+          <p class="proposal-tip" id="proposal-match-tip"></p>
+          <div class="candle-area" id="candle-area">
+            <div class="match" id="match"></div>
+            <div class="candle" id="candle">
+              <div class="candle-flame" aria-hidden="true"></div>
+              <div class="candle-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 阶段 3：回忆浮现 -->
+        <div class="proposal-phase proposal-phase-memory" id="proposal-phase-memory">
+          <div class="proposal-photo-wrap">
+            <img class="proposal-photo" id="proposal-photo" alt="那一刻的我们" />
+            <span class="proposal-photo-caption" id="proposal-photo-caption"></span>
+          </div>
+          <p class="proposal-memory-text" id="proposal-memory-text"></p>
+          <button type="button" class="btn-primary" id="btn-proposal-ask">继续</button>
+        </div>
+
+        <!-- 阶段 4：求婚提问 -->
+        <div class="proposal-phase proposal-phase-ask" id="proposal-phase-ask">
+          <div class="ring-emoji" aria-hidden="true">💍</div>
+          <h2 class="proposal-question" id="proposal-question"></h2>
+          <div class="proposal-choice">
+            <button type="button" class="proposal-btn proposal-btn-yes" id="btn-proposal-yes"></button>
+            <button type="button" class="proposal-btn proposal-btn-no" id="btn-proposal-no">不愿意</button>
+          </div>
+        </div>
+
+        <!-- 阶段 5：接受 + 戒指 + 烟花 -->
+        <div class="proposal-phase proposal-phase-accept" id="proposal-phase-accept">
+          <svg class="ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="115" r="48" fill="none" stroke="#e6c200" stroke-width="6"/>
+            <circle cx="100" cy="115" r="48" fill="none" stroke="#fff7c2" stroke-width="2"/>
+            <path d="M85,55 L100,30 L115,55 Z" fill="#fff" stroke="#e6c200" stroke-width="2"/>
+            <path d="M85,55 L100,30 L115,55 Z" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+          <p class="proposal-accept-text" id="proposal-accept-text"></p>
+          <p class="proposal-days" id="proposal-days"></p>
+          <button type="button" class="btn-primary" id="btn-proposal-done">永远记住这一天 ❤️</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 浮层：剪影叙事（南京） -->
+    <section id="overlay-silhouette" class="project-overlay overlay-silhouette" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="silhouette">← 返回旅程</button>
+        <span class="overlay-badge" id="silhouette-stage">序</span>
+      </div>
+
+      <div class="sil-stage" id="sil-stage">
+        <!-- 渐变天空 -->
+        <div class="sil-sky" id="sil-sky" aria-hidden="true"></div>
+        <!-- 太阳/月亮 -->
+        <div class="sil-celestial" id="sil-celestial" aria-hidden="true"></div>
+
+        <!-- 序幕 -->
+        <div class="sil-phase sil-phase-intro active" id="sil-intro">
+          <div class="sil-avatar-wrap">
+            <div class="sil-avatar" id="sil-avatar">
+              <div class="sil-avatar-placeholder">男生</div>
+            </div>
+          </div>
+          <h2 class="sil-title" id="sil-title"></h2>
+          <p class="sil-subtitle" id="sil-subtitle"></p>
+          <p class="sil-intro-text" id="sil-intro-text"></p>
+          <button type="button" class="btn-primary sil-start-btn" id="btn-sil-start">开始讲给我听</button>
+        </div>
+
+        <!-- 场景幕 -->
+        <div class="sil-phase sil-phase-scene" id="sil-scene-phase">
+          <div class="sil-year" id="sil-year"></div>
+          <div class="sil-scene-art" id="sil-scene-art" aria-hidden="true"></div>
+          <h3 class="sil-scene-title" id="sil-scene-title"></h3>
+          <div class="sil-scene-location" id="sil-scene-location"></div>
+          <p class="sil-narration" id="sil-narration"></p>
+          <div class="sil-progress" id="sil-progress"></div>
+          <div class="sil-nav">
+            <button type="button" class="sil-nav-btn" id="btn-sil-prev">上一幕</button>
+            <button type="button" class="sil-nav-btn sil-nav-btn-primary" id="btn-sil-next">下一幕</button>
+          </div>
+        </div>
+
+        <!-- 尾声 -->
+        <div class="sil-phase sil-phase-outro" id="sil-outro">
+          <div class="sil-stars-bg" aria-hidden="true"></div>
+          <div class="sil-outro-content">
+            <p class="sil-outro-text" id="sil-outro-text"></p>
+            <button type="button" class="btn-primary" id="btn-sil-done">打卡这一站 ✓</button>
+          </div>
+        </div>
       </div>
     </section>
 

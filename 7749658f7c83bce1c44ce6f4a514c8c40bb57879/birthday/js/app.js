@@ -9,6 +9,11 @@
   var judgeStreak = 0;
   var judgeUsedInSession = [];
   var judgeCurrentStmt = null;
+  var puzzleSize = 3;
+  var puzzleTiles = [];
+  var puzzleMoves = 0;
+  var puzzleSolved = false;
+  var puzzleSelected = -1;
   var touchStartX = 0;
   var completedStations = {};
   var unlockedUpTo = 0;
@@ -61,6 +66,20 @@
     el.memoryIcon = $("memory-icon");
     el.memoryCity = $("memory-city");
     el.memoryTagline = $("memory-tagline");
+    el.puzzleBoard = $("puzzle-board");
+    el.puzzleStatus = $("puzzle-status");
+    el.puzzleTitle = $("puzzle-title");
+    el.puzzleIntro = $("puzzle-intro");
+    el.puzzleMsg = $("puzzle-msg");
+    el.puzzlePeek = $("puzzle-peek");
+    el.puzzlePeekImg = $("puzzle-peek-img");
+    el.proposalScene = $("proposal-scene");
+    el.proposalStage = $("proposal-stage");
+    el.silStage = $("sil-stage");
+    el.silSceneArt = $("sil-scene-art");
+    el.silSky = $("sil-sky");
+    el.silCelestial = $("sil-celestial");
+    el.silStageBadge = $("silhouette-stage");
   }
 
   function loadContent() {
@@ -434,6 +453,19 @@
       startJudgeGame();
     }
 
+    if (type === "puzzle" && station) {
+      $("puzzle-title").textContent = station.icon + " " + station.city + "站 · 拼图";
+      startPuzzle();
+    }
+
+    if (type === "proposal" && station) {
+      startProposal(station);
+    }
+
+    if (type === "silhouette" && station) {
+      startSilhouette(station);
+    }
+
     if (type === "memory" && station) {
       $("overlay-memory-city").textContent = station.city;
       el.memoryIcon.textContent = station.icon;
@@ -677,6 +709,558 @@
     }
   }
 
+  /* ── 北海站：交换拼图 ── */
+  function getPuzzleData() {
+    return content.beihaiPuzzle || { image: "", size: 3, title: "", intro: "", success: "" };
+  }
+
+  function isPuzzleSolved() {
+    for (var i = 0; i < puzzleTiles.length; i++) {
+      if (puzzleTiles[i] !== i) return false;
+    }
+    return true;
+  }
+
+  function puzzleSwap(i, j) {
+    var tmp = puzzleTiles[i];
+    puzzleTiles[i] = puzzleTiles[j];
+    puzzleTiles[j] = tmp;
+  }
+
+  function shufflePuzzle() {
+    var n = puzzleSize;
+    var total = n * n;
+    puzzleTiles = [];
+    for (var i = 0; i < total; i++) puzzleTiles.push(i);
+    puzzleSolved = false;
+    puzzleMoves = 0;
+    puzzleSelected = -1;
+
+    do {
+      for (var i = total - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        puzzleSwap(i, j);
+      }
+    } while (isPuzzleSolved());
+  }
+
+  function renderPuzzle() {
+    var data = getPuzzleData();
+    var n = puzzleSize;
+    var total = n * n;
+    el.puzzleBoard.innerHTML = "";
+    el.puzzleBoard.style.setProperty("--puzzle-n", n);
+
+    for (var i = 0; i < total; i++) {
+      var val = puzzleTiles[i];
+      var cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "puzzle-cell";
+      cell.dataset.pos = String(i);
+
+      var tr = Math.floor(val / n);
+      var tc = val % n;
+      var posPct = n > 1 ? 100 / (n - 1) : 0;
+      cell.style.backgroundImage = "url('" + data.image + "')";
+      cell.style.backgroundSize = n * 100 + "% " + n * 100 + "%";
+      cell.style.backgroundPosition = tc * posPct + "% " + tr * posPct + "%";
+
+      var badge = document.createElement("span");
+      badge.className = "puzzle-num";
+      badge.textContent = val + 1;
+      cell.appendChild(badge);
+
+      if (i === puzzleSelected) {
+        cell.classList.add("puzzle-cell-selected");
+      }
+      if (puzzleSolved) {
+        cell.classList.add("puzzle-cell-done");
+      }
+
+      (function (idx) {
+        cell.addEventListener("click", function () {
+          onPuzzleTileClick(idx);
+        });
+      })(i);
+
+      var r = Math.floor(i / n);
+      var c = i % n;
+      cell.style.left = (c / n) * 100 + "%";
+      cell.style.top = (r / n) * 100 + "%";
+      cell.style.width = 100 / n + "%";
+      cell.style.height = 100 / n + "%";
+      el.puzzleBoard.appendChild(cell);
+    }
+
+    if (el.puzzleStatus) {
+      el.puzzleStatus.textContent = puzzleSolved
+        ? puzzleMoves + " 次交换 · 通关"
+        : puzzleMoves + " 次交换";
+    }
+  }
+
+  function onPuzzleTileClick(index) {
+    if (puzzleSolved) return;
+
+    if (puzzleSelected === -1) {
+      puzzleSelected = index;
+      renderPuzzle();
+      if (el.puzzleMsg) el.puzzleMsg.textContent = "再点另一块，就能交换啦～";
+      return;
+    }
+
+    if (puzzleSelected === index) {
+      puzzleSelected = -1;
+      renderPuzzle();
+      if (el.puzzleMsg) el.puzzleMsg.textContent = "";
+      return;
+    }
+
+    puzzleSwap(puzzleSelected, index);
+    puzzleMoves += 1;
+    puzzleSelected = -1;
+    renderPuzzle();
+
+    if (isPuzzleSolved()) {
+      puzzleSolved = true;
+      var data = getPuzzleData();
+      if (el.puzzleMsg) el.puzzleMsg.textContent = data.success || "拼好啦！❤️";
+      var doneBtn = $("btn-puzzle-done");
+      if (doneBtn) doneBtn.classList.remove("hidden");
+      renderPuzzle();
+    } else {
+      if (el.puzzleMsg) el.puzzleMsg.textContent = "";
+    }
+  }
+
+  function startPuzzle() {
+    var data = getPuzzleData();
+    puzzleSize = data.size || 3;
+    if (el.puzzleIntro) el.puzzleIntro.textContent = data.intro || "";
+    if (el.puzzleMsg) el.puzzleMsg.textContent = "";
+    if (el.puzzlePeekImg) el.puzzlePeekImg.src = data.image;
+    if (el.puzzlePeek) el.puzzlePeek.classList.add("hidden");
+    var doneBtn = $("btn-puzzle-done");
+    if (doneBtn) doneBtn.classList.add("hidden");
+    shufflePuzzle();
+    renderPuzzle();
+  }
+
+  /* ── 上海站：求婚仪式 ── */
+  var proposalPhase = "intro";
+  var proposalNoCount = 0;
+  var proposalMatchLit = false;
+
+  function getProposalData() {
+    return content.shanghaiProposal || {};
+  }
+
+  function showProposalPhase(name) {
+    proposalPhase = name;
+    var phases = el.proposalScene.querySelectorAll(".proposal-phase");
+    phases.forEach(function (p) {
+      p.classList.toggle("active", p.id === "proposal-phase-" + name);
+    });
+    if (el.proposalStage) {
+      var labels = {
+        intro: "那一刻",
+        match: "点亮",
+        memory: "回忆",
+        ask: "求婚",
+        accept: "我愿意"
+      };
+      el.proposalStage.textContent = labels[name] || name;
+    }
+  }
+
+  function daysSince(dateStr) {
+    if (!dateStr) return 0;
+    var start = new Date(dateStr + "T00:00:00");
+    if (isNaN(start.getTime())) return 0;
+    var now = new Date();
+    var d = Math.floor((now - start) / 86400000);
+    return d >= 0 ? d : 0;
+  }
+
+  function buildProposalStars() {
+    var box = el.proposalScene.querySelector(".proposal-stars");
+    if (!box || box.childElementCount) return;
+    for (var i = 0; i < 30; i++) {
+      var s = document.createElement("span");
+      s.className = "proposal-star";
+      s.textContent = "✦";
+      s.style.left = Math.random() * 100 + "%";
+      s.style.top = Math.random() * 60 + "%";
+      s.style.fontSize = 6 + Math.random() * 10 + "px";
+      s.style.animationDelay = Math.random() * 3 + "s";
+      box.appendChild(s);
+    }
+  }
+
+  function startProposal(station) {
+    var data = getProposalData();
+    buildProposalStars();
+
+    $("proposal-intro-text").textContent = data.phases && data.phases.intro
+      ? data.phases.intro
+      : "有些瞬间，一辈子都不会忘。";
+    $("proposal-match-tip").textContent = data.phases && data.phases.matchHint
+      ? data.phases.matchHint
+      : "用手指划过火柴，点燃蜡烛 →";
+    $("proposal-memory-text").textContent = data.phases && data.phases.memory
+      ? data.phases.memory
+      : "";
+    $("proposal-photo-caption").textContent = data.phases && data.phases.memoryCaption
+      ? data.phases.memoryCaption
+      : "";
+    $("proposal-photo").src = data.image || "./pictures/求婚.jpg";
+    $("proposal-question").textContent = data.phases && data.phases.ask
+      ? data.phases.ask
+      : "你愿意嫁给我吗？";
+    $("btn-proposal-yes").textContent = data.phases && data.phases.yesText
+      ? data.phases.yesText
+      : "我愿意 ❤️";
+    $("proposal-accept-text").textContent = data.phases && data.phases.accept
+      ? data.phases.accept
+      : "";
+
+    proposalMatchLit = false;
+    proposalNoCount = 0;
+    bindMatchGesture();
+    showProposalPhase("intro");
+  }
+
+  function gotoMatchPhase() {
+    showProposalPhase("match");
+  }
+
+  function gotoMemoryPhase() {
+    showProposalPhase("memory");
+    var photo = $("proposal-photo");
+    if (photo) {
+      photo.classList.remove("is-revealed");
+      void photo.offsetWidth;
+      photo.classList.add("is-revealed");
+    }
+  }
+
+  function gotoAskPhase() {
+    showProposalPhase("ask");
+    proposalNoCount = 0;
+    positionProposalNoButton();
+  }
+
+  function gotoAcceptPhase() {
+    showProposalPhase("accept");
+    var data = getProposalData();
+    var days = daysSince(data.proposalDate);
+    var label = (data.phases && data.phases.daysLabel) || "从那一天到今天，我们已经携手走过";
+    $("proposal-days").textContent = label + " " + days + " 天 ❤️";
+    spawnProposalFireworks();
+  }
+
+  function bindMatchGesture() {
+    var match = $("match");
+    var candle = $("candle");
+    if (!match || !candle || match.dataset.bound === "1") return;
+    match.dataset.bound = "1";
+
+    var lit = false;
+    function light() {
+      if (lit || proposalPhase !== "match") return;
+      lit = true;
+      proposalMatchLit = true;
+      match.classList.add("is-struck");
+      candle.classList.add("is-lit");
+      setTimeout(gotoMemoryPhase, 900);
+    }
+
+    function bindDrag(target) {
+      function handler(e) {
+        e.preventDefault();
+        light();
+      }
+      target.addEventListener("click", handler);
+      target.addEventListener("touchstart", handler, { passive: false });
+    }
+    bindDrag(match);
+    bindDrag(candle);
+  }
+
+  function positionProposalNoButton() {
+    var no = $("btn-proposal-no");
+    if (!no) return;
+    no.style.position = "";
+    no.style.left = "";
+    no.style.top = "";
+    no.style.transform = "";
+  }
+
+  function dodgeProposalNo() {
+    var no = $("btn-proposal-no");
+    if (!no) return;
+    proposalNoCount += 1;
+    var data = getProposalData();
+    var teases = (data.phases && data.phases.noTease) || ["再想想嘛～"];
+    no.textContent = teases[(proposalNoCount - 1) % teases.length];
+
+    var sceneRect = el.proposalScene.getBoundingClientRect();
+    var btnW = no.offsetWidth || 90;
+    var btnH = no.offsetHeight || 44;
+    var padding = 12;
+    var maxX = sceneRect.width - btnW - padding;
+    var maxY = sceneRect.height - btnH - padding;
+    var x = padding + Math.random() * Math.max(0, maxX - padding);
+    var y = padding + Math.random() * Math.max(0, maxY - padding);
+    no.style.position = "absolute";
+    no.style.left = x + "px";
+    no.style.top = y + "px";
+  }
+
+  function spawnProposalFireworks() {
+    var colors = ["#ffd54f", "#ffb300", "#ff8a65", "#f06292", "#81c784", "#fff"];
+    var scene = el.proposalScene;
+    for (var i = 0; i < 8; i++) {
+      (function (k) {
+        setTimeout(function () {
+          var burst = document.createElement("div");
+          burst.className = "proposal-firework";
+          burst.style.left = 15 + Math.random() * 70 + "%";
+          burst.style.top = 10 + Math.random() * 40 + "%";
+          var color = colors[k % colors.length];
+          for (var p = 0; p < 12; p++) {
+            var particle = document.createElement("span");
+            particle.className = "proposal-spark";
+            var ang = (Math.PI * 2 * p) / 12;
+            var dist = 30 + Math.random() * 20;
+            particle.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+            particle.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+            particle.style.background = color;
+            particle.style.boxShadow = "0 0 6px " + color;
+            burst.appendChild(particle);
+          }
+          scene.appendChild(burst);
+          setTimeout(function () {
+            burst.remove();
+          }, 1200);
+        }, k * 250);
+      })(i);
+    }
+  }
+
+  /* ── 南京站：剪影叙事 ── */
+  var silIndex = 0;
+
+  function getSilData() {
+    return content.nanjingSilhouette || { scenes: [] };
+  }
+
+  function setSilSky(index, total) {
+    if (!el.silSky || !el.silCelestial) return;
+    var ratio = total <= 1 ? 0 : index / (total - 1);
+    var topPct = 8 + ratio * 55;
+    var hue1 = 32 - ratio * 32;
+    var hue2 = 210 + ratio * 30;
+    var skyTop = "hsl(" + hue1 + ", 85%, " + (62 - ratio * 30) + "%)";
+    var skyMid = "hsl(" + (hue1 - 8) + ", 70%, " + (48 - ratio * 28) + "%)";
+    var skyBottom = "hsl(" + hue2 + ", 55%, " + (22 - ratio * 12) + "%)";
+    el.silSky.style.background =
+      "linear-gradient(180deg, " + skyTop + " 0%, " + skyMid + " 45%, " + skyBottom + " 100%)";
+
+    if (ratio < 0.55) {
+      el.silCelestial.className = "sil-celestial sil-celestial-sun";
+      el.silCelestial.style.background =
+        "radial-gradient(circle, #fff5c2 0%, #ffd54f 45%, rgba(255,138,101,0.5) 75%, transparent 100%)";
+    } else {
+      el.silCelestial.className = "sil-celestial sil-celestial-moon";
+      el.silCelestial.style.background =
+        "radial-gradient(circle, #fff 0%, #e0e7ff 50%, rgba(160,180,255,0.4) 80%, transparent 100%)";
+    }
+    el.silCelestial.style.top = topPct + "%";
+    el.silCelestial.style.right = 14 + ratio * 30 + "%";
+  }
+
+  var SIL_ART = {
+    military: function () {
+      return ''
+        + '<div class="sil-art sil-art-military">'
+        +   '<div class="sil-ground"></div>'
+        +   '<div class="sil-sun-disk"></div>'
+        +   '<div class="sil-figure-group">'
+        +     '<div class="sil-figure sil-figure-m1"></div>'
+        +     '<div class="sil-figure sil-figure-m2"></div>'
+        +     '<div class="sil-figure sil-figure-m3"></div>'
+        +     '<div class="sil-figure sil-figure-m4"></div>'
+        +     '<div class="sil-figure sil-figure-m5"></div>'
+        +   '</div>'
+        + '</div>';
+    },
+    dorm: function () {
+      return ''
+        + '<div class="sil-art sil-art-dorm">'
+        +   '<div class="sil-room">'
+        +     '<div class="sil-bunk sil-bunk-l"></div>'
+        +     '<div class="sil-bunk sil-bunk-r"></div>'
+        +     '<div class="sil-table"></div>'
+        +     '<div class="sil-cake"></div>'
+        +     '<div class="sil-figure sil-figure-sit sil-figure-sit1"></div>'
+        +     '<div class="sil-figure sil-figure-sit sil-figure-sit2"></div>'
+        +     '<div class="sil-figure sil-figure-sit sil-figure-sit3"></div>'
+        +     '<div class="sil-flag"></div>'
+        +   '</div>'
+        + '</div>';
+    },
+    club: function () {
+      return ''
+        + '<div class="sil-art sil-art-club">'
+        +   '<div class="sil-floor"></div>'
+        +   '<div class="sil-desk"></div>'
+        +   '<div class="sil-laptop"></div>'
+        +   '<div class="sil-figure sil-figure-type sil-figure-type1"></div>'
+        +   '<div class="sil-figure sil-figure-type sil-figure-type2"></div>'
+        +   '<div class="sil-bubble"></div>'
+        + '</div>';
+    },
+    library: function () {
+      return ''
+        + '<div class="sil-art sil-art-library">'
+        +   '<div class="sil-bookshelf"></div>'
+        +   '<div class="sil-lamp"></div>'
+        +   '<div class="sil-lamp-light"></div>'
+        +   '<div class="sil-figure sil-figure-sit sil-figure-study"></div>'
+        +   '<div class="sil-formula">∑ ∫ lim</div>'
+        + '</div>';
+    },
+    graduation: function () {
+      return ''
+        + '<div class="sil-art sil-art-graduation">'
+        +   '<div class="sil-ground"></div>'
+        +   '<div class="sil-figure sil-figure-grad sil-figure-grad1"></div>'
+        +   '<div class="sil-figure sil-figure-grad sil-figure-grad2"></div>'
+        +   '<div class="sil-figure sil-figure-grad sil-figure-grad3"></div>'
+        +   '<div class="sil-figure sil-figure-grad sil-figure-grad4"></div>'
+        +   '<div class="sil-cap"></div>'
+        + '</div>';
+    }
+  };
+
+  function renderSilScene(index) {
+    var data = getSilData();
+    var scene = data.scenes[index];
+    if (!scene) return;
+    var total = data.scenes.length;
+
+    setSilSky(index, total);
+
+    $("sil-year").textContent = scene.year;
+    $("sil-scene-title").textContent = scene.title;
+    $("sil-scene-location").textContent = "📍 " + scene.location;
+
+    var art = (SIL_ART[scene.scene] || SIL_ART.military)();
+    el.silSceneArt.innerHTML = art;
+    el.silSceneArt.dataset.scene = scene.scene;
+
+    var narration = $("sil-narration");
+    narration.textContent = "";
+    el.silSceneArt.style.opacity = "0";
+    void el.silSceneArt.offsetWidth;
+    el.silSceneArt.style.opacity = "1";
+
+    if (el.silStageBadge) {
+      el.silStageBadge.textContent = "第 " + (index + 1) + " 幕 / " + total;
+    }
+
+    typeText(narration, scene.narration, 28);
+
+    var prog = $("sil-progress");
+    prog.innerHTML = "";
+    for (var i = 0; i < total; i++) {
+      var dot = document.createElement("span");
+      dot.className = "sil-dot" + (i === index ? " active" : "") + (i < index ? " done" : "");
+      prog.appendChild(dot);
+    }
+
+    $("btn-sil-prev").disabled = index === 0;
+    $("btn-sil-next").textContent = index === total - 1 ? "走完这四年" : "下一幕";
+  }
+
+  function typeText(node, text, speed) {
+    if (!node) return;
+    node.textContent = "";
+    var i = 0;
+    function step() {
+      if (i <= text.length) {
+        node.textContent = text.slice(0, i);
+        i += 1;
+        setTimeout(step, speed);
+      }
+    }
+    step();
+  }
+
+  function startSilhouette(station) {
+    var data = getSilData();
+    silIndex = 0;
+    $("sil-title").textContent = data.title || "我的大学四年";
+    $("sil-subtitle").textContent = data.subtitle || "";
+    $("sil-intro-text").textContent = data.intro || "";
+
+    var avatar = $("sil-avatar");
+    var ph = avatar.querySelector(".sil-avatar-placeholder");
+    if (data.avatar) {
+      var img = document.createElement("img");
+      img.src = data.avatar;
+      img.alt = "我";
+      img.onerror = function () {
+        img.style.display = "none";
+        if (ph) ph.style.display = "block";
+      };
+      avatar.appendChild(img);
+      if (ph) ph.style.display = "none";
+    }
+
+    ["sil-intro", "sil-scene-phase", "sil-outro"].forEach(function (id) {
+      $(id).classList.toggle("active", id === "sil-intro");
+    });
+
+    buildSilStars();
+  }
+
+  function buildSilStars() {
+    var box = el.silStage.querySelector(".sil-stars-bg");
+    if (!box || box.childElementCount) return;
+    for (var i = 0; i < 40; i++) {
+      var s = document.createElement("span");
+      s.className = "sil-star";
+      s.textContent = "✦";
+      s.style.left = Math.random() * 100 + "%";
+      s.style.top = Math.random() * 70 + "%";
+      s.style.fontSize = 5 + Math.random() * 9 + "px";
+      s.style.animationDelay = Math.random() * 3 + "s";
+      box.appendChild(s);
+    }
+  }
+
+  function silNext() {
+    var data = getSilData();
+    if (silIndex < data.scenes.length - 1) {
+      silIndex += 1;
+      renderSilScene(silIndex);
+    } else {
+      $("sil-outro-text").textContent = data.outro || "";
+      ["sil-intro", "sil-scene-phase", "sil-outro"].forEach(function (id) {
+        $(id).classList.toggle("active", id === "sil-outro");
+      });
+    }
+  }
+
+  function silPrev() {
+    if (silIndex > 0) {
+      silIndex -= 1;
+      renderSilScene(silIndex);
+    }
+  }
+
   function renderQuestion() {
     var q = content.questions[quizIndex];
     el.questionText.textContent = q.text;
@@ -861,6 +1445,51 @@
     });
     $("btn-judge-false").addEventListener("click", function () {
       onJudgeAnswer(false);
+    });
+
+    $("btn-puzzle-shuffle").addEventListener("click", function () {
+      if (el.puzzleMsg) el.puzzleMsg.textContent = "";
+      var doneBtn = $("btn-puzzle-done");
+      if (doneBtn) doneBtn.classList.add("hidden");
+      shufflePuzzle();
+      renderPuzzle();
+    });
+
+    $("btn-puzzle-peek").addEventListener("click", function () {
+      if (!el.puzzlePeek) return;
+      el.puzzlePeek.classList.toggle("hidden");
+    });
+
+    $("btn-puzzle-done").addEventListener("click", function () {
+      if (activeStation) markCompleted(activeStation.id);
+      closeOverlay("puzzle");
+      advanceToNextStation();
+    });
+
+    $("btn-proposal-start").addEventListener("click", gotoMatchPhase);
+    $("btn-proposal-ask").addEventListener("click", gotoAskPhase);
+    $("btn-proposal-yes").addEventListener("click", gotoAcceptPhase);
+    $("btn-proposal-no").addEventListener("click", dodgeProposalNo);
+    $("btn-proposal-done").addEventListener("click", function () {
+      if (activeStation) markCompleted(activeStation.id);
+      closeOverlay("proposal");
+      advanceToNextStation();
+    });
+
+    $("btn-sil-start").addEventListener("click", function () {
+      var data = getSilData();
+      silIndex = 0;
+      ["sil-intro", "sil-scene-phase", "sil-outro"].forEach(function (id) {
+        $(id).classList.toggle("active", id === "sil-scene-phase");
+      });
+      renderSilScene(0);
+    });
+    $("btn-sil-next").addEventListener("click", silNext);
+    $("btn-sil-prev").addEventListener("click", silPrev);
+    $("btn-sil-done").addEventListener("click", function () {
+      if (activeStation) markCompleted(activeStation.id);
+      closeOverlay("silhouette");
+      advanceToNextStation();
     });
 
     $("letter-done-btn").addEventListener("click", function () {

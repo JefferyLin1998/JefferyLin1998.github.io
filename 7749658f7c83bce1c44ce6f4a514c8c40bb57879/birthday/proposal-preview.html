@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#04060f">
+  <title>那一刻 · 上海</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #f1f8e9;
+      --primary: #43a047;
+      --primary-dark: #2e7d32;
+      --primary-light: #81c784;
+    }
+
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #04060f;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      max-width: 460px; margin: 0 auto;
+      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+      color: var(--cream); z-index: 50;
+    }
+    .topbar .badge {
+      font-size: 0.8rem; color: #ffd54f;
+      background: rgba(255, 213, 79, 0.1); padding: 4px 12px; border-radius: 12px;
+    }
+
+    .scene {
+      position: relative;
+      max-width: 460px; margin: 0 auto;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, #1a2b4a 0%, #0a1124 55%, #04060f 100%);
+      overflow: hidden;
+      padding: 24px 22px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .stars { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+    .star {
+      position: absolute; color: #fff; opacity: 0;
+      animation: twinkle 3s ease-in-out infinite; text-shadow: 0 0 6px #fff;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.15; transform: scale(0.8); }
+      50% { opacity: 0.9; transform: scale(1.2); }
+    }
+
+    .phase {
+      position: relative; z-index: 2;
+      display: none; flex-direction: column; align-items: center; text-align: center; gap: 18px;
+      animation: fade-in 0.6s ease;
+    }
+    .phase.active { display: flex; }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .moon {
+      font-size: 56px;
+      filter: drop-shadow(0 0 18px rgba(255, 235, 120, 0.6));
+      animation: moon-float 4s ease-in-out infinite;
+    }
+    @keyframes moon-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .intro-text {
+      color: var(--cream); font-size: 1rem; line-height: 1.8;
+      max-width: 320px; letter-spacing: 0.04em;
+    }
+    .tip { color: rgba(241, 248, 233, 0.7); font-size: 0.88rem; }
+
+    .candle-area {
+      position: relative; width: 100%; height: 200px;
+      display: flex; align-items: center; justify-content: center; gap: 40px; margin: 10px 0;
+    }
+    .match {
+      position: relative; width: 8px; height: 70px;
+      background: linear-gradient(to bottom, #c0392b 0%, #c0392b 18%, #d35400 18%, #d35400 22%, #bdc3c7 22%);
+      border-radius: 2px; cursor: pointer; transform-origin: bottom center;
+      transition: transform 0.2s; touch-action: none;
+    }
+    .match::before {
+      content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+      width: 6px; height: 12px; background: #7d2b1f; border-radius: 2px;
+    }
+    .match.is-struck::after {
+      content: ""; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      width: 14px; height: 22px;
+      background: radial-gradient(circle, #fffde7 0%, #ffd54f 40%, #ff8a65 70%, transparent 100%);
+      border-radius: 50%; animation: match-flame 0.5s ease forwards;
+    }
+    @keyframes match-flame {
+      from { transform: translateX(-50%) scale(0); opacity: 0; }
+      to { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    .candle { position: relative; display: flex; flex-direction: column; align-items: center; }
+    .candle-body {
+      width: 26px; height: 70px;
+      background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+      border-radius: 4px 4px 6px 6px; box-shadow: inset -3px 0 0 rgba(0,0,0,0.1);
+    }
+    .candle-flame {
+      width: 14px; height: 0; margin-bottom: -2px;
+      background: radial-gradient(circle at 50% 80%, #fffde7 0%, #ffd54f 40%, #ff8a65 80%, transparent 100%);
+      border-radius: 50% 50% 20% 20%; transition: height 0.3s ease, box-shadow 0.3s ease;
+    }
+    .candle.is-lit .candle-flame {
+      height: 26px;
+      animation: flame-flicker 0.4s ease-in-out infinite alternate;
+      box-shadow: 0 0 24px 6px rgba(255, 213, 79, 0.5);
+    }
+    @keyframes flame-flicker {
+      from { transform: scale(1) rotate(-2deg); opacity: 0.9; }
+      to { transform: scale(1.08) rotate(2deg); opacity: 1; }
+    }
+
+    .photo-wrap { position: relative; width: min(76vw, 280px); margin: 4px auto 0; }
+    .photo {
+      width: 100%; border-radius: 14px;
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      filter: blur(20px) grayscale(80%) brightness(0.4);
+      opacity: 0.3; transform: scale(0.95);
+      transition: filter 2.2s ease, opacity 2.2s ease, transform 2.2s ease;
+    }
+    .photo.is-revealed {
+      filter: blur(0) grayscale(0) brightness(1); opacity: 1; transform: scale(1);
+    }
+    .photo-caption {
+      display: block; margin-top: 10px;
+      color: rgba(241, 248, 233, 0.7); font-size: 0.82rem; letter-spacing: 0.1em;
+    }
+    .memory-text {
+      color: var(--cream); font-size: 0.98rem; line-height: 1.85;
+      max-width: 340px; letter-spacing: 0.02em;
+    }
+
+    .ring-emoji {
+      font-size: 64px;
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+      animation: ring-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes ring-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    .question {
+      color: #fff; font-size: 1.5rem; font-weight: 600;
+      text-shadow: 0 2px 12px rgba(255, 213, 79, 0.5); letter-spacing: 0.04em;
+    }
+
+    .choice {
+      position: relative; display: flex; gap: 20px; margin-top: 14px;
+      width: 100%; justify-content: center; flex-wrap: wrap;
+    }
+    .pbtn {
+      min-width: 120px; min-height: 48px; padding: 12px 22px;
+      border: none; border-radius: 24px; font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: transform 0.25s ease, left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pbtn-yes {
+      background: linear-gradient(135deg, #ff8a65, #f06292); color: #fff;
+      box-shadow: 0 6px 20px rgba(240, 98, 146, 0.5);
+      animation: yes-glow 1.5s ease-in-out infinite;
+    }
+    @keyframes yes-glow {
+      0%, 100% { box-shadow: 0 6px 20px rgba(240, 98, 146, 0.5); }
+      50% { box-shadow: 0 6px 28px rgba(240, 98, 146, 0.8); }
+    }
+    .pbtn-yes:active { transform: scale(0.96); }
+    .pbtn-no {
+      background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .ring-svg {
+      width: 120px; height: 120px;
+      filter: drop-shadow(0 0 24px rgba(255, 215, 0, 0.7));
+      animation: ring-spin-in 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes ring-spin-in {
+      from { transform: scale(0) rotate(-180deg); opacity: 0; }
+      to { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .accept-text {
+      color: #fff; font-size: 1.2rem; font-weight: 600; line-height: 1.7;
+      text-shadow: 0 2px 10px rgba(255, 213, 79, 0.4);
+    }
+    .days { color: rgba(241, 248, 233, 0.85); font-size: 1rem; line-height: 1.6; }
+
+    .btn-primary {
+      display: inline-block; min-width: 200px; max-width: 260px;
+      min-height: 52px; padding: 14px 24px; border: none; border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+      transition: transform 0.15s, opacity 0.2s;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .firework { position: absolute; width: 0; height: 0; pointer-events: none; z-index: 3; }
+    .spark {
+      position: absolute; width: 5px; height: 5px; border-radius: 50%;
+      animation: spark-fly 1s ease-out forwards;
+    }
+    @keyframes spark-fly {
+      from { transform: translate(0,0) scale(1); opacity: 1; }
+      to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span style="width:60px"></span>
+    <span class="badge" id="stage">那一刻</span>
+    <span style="width:60px"></span>
+  </div>
+
+  <div class="scene" id="scene">
+    <div class="stars" id="stars" aria-hidden="true"></div>
+
+    <div class="phase active" id="phase-intro">
+      <div class="moon" aria-hidden="true">🌙</div>
+      <p class="intro-text" id="intro-text"></p>
+      <button type="button" class="btn-primary" id="btn-start">回到那一刻</button>
+    </div>
+
+    <div class="phase" id="phase-match">
+      <p class="tip" id="match-tip"></p>
+      <div class="candle-area">
+        <div class="match" id="match"></div>
+        <div class="candle" id="candle">
+          <div class="candle-flame" aria-hidden="true"></div>
+          <div class="candle-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase" id="phase-memory">
+      <div class="photo-wrap">
+        <img class="photo" id="photo" alt="那一刻的我们" />
+        <span class="photo-caption" id="caption"></span>
+      </div>
+      <p class="memory-text" id="memory-text"></p>
+      <button type="button" class="btn-primary" id="btn-ask">继续</button>
+    </div>
+
+    <div class="phase" id="phase-ask">
+      <div class="ring-emoji" aria-hidden="true">💍</div>
+      <h2 class="question" id="question"></h2>
+      <div class="choice">
+        <button type="button" class="pbtn pbtn-yes" id="btn-yes"></button>
+        <button type="button" class="pbtn pbtn-no" id="btn-no">不愿意</button>
+      </div>
+    </div>
+
+    <div class="phase" id="phase-accept">
+      <svg class="ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="115" r="48" fill="none" stroke="#e6c200" stroke-width="6"/>
+        <circle cx="100" cy="115" r="48" fill="none" stroke="#fff7c2" stroke-width="2"/>
+        <path d="M85,55 L100,30 L115,55 Z" fill="#fff" stroke="#e6c200" stroke-width="2"/>
+        <path d="M85,55 L100,30 L115,55 Z" fill="rgba(255,255,255,0.4)"/>
+      </svg>
+      <p class="accept-text" id="accept-text"></p>
+      <p class="days" id="days"></p>
+      <button type="button" class="btn-primary" id="btn-done">永远记住这一天 ❤️</button>
+    </div>
+  </div>
+
+  <script>
+    // ── 配置（可改） ──
+    var CONFIG = {
+      image: "./pictures/求婚.jpg",
+      proposalDate: "2024-03-11",
+      intro: "有些瞬间，一辈子都不会忘。今天，让我们一起回到那一天……",
+      matchHint: "用手指划过火柴，点燃蜡烛 →",
+      memory: "2024年3月11日，上海的夜风很轻。我紧张得手心冒汗，单膝跪下，把戒指举到你面前——全世界都安静了，只剩下你和我。",
+      caption: "那一刻 · 上海",
+      ask: "你愿意嫁给我吗？",
+      yesText: "我愿意 ❤️",
+      noTease: ["再想想嘛～", "别犹豫啦 ❤️", "真的不再考虑一下？", "戒指都准备好了哦～"],
+      accept: "谢谢你，让我成为世界上最幸福的人。",
+      daysLabel: "从那一天到今天，我们已经携手走过"
+    };
+
+    var scene = document.getElementById("scene");
+    var stage = document.getElementById("stage");
+    var noCount = 0;
+
+    function $(id) { return document.getElementById(id); }
+
+    function buildStars() {
+      var box = $("stars");
+      for (var i = 0; i < 30; i++) {
+        var s = document.createElement("span");
+        s.className = "star";
+        s.textContent = "✦";
+        s.style.left = Math.random() * 100 + "%";
+        s.style.top = Math.random() * 60 + "%";
+        s.style.fontSize = 6 + Math.random() * 10 + "px";
+        s.style.animationDelay = Math.random() * 3 + "s";
+        box.appendChild(s);
+      }
+    }
+
+    function showPhase(name) {
+      ["intro","match","memory","ask","accept"].forEach(function (p) {
+        $("phase-" + p).classList.toggle("active", p === name);
+      });
+      var labels = { intro:"那一刻", match:"点亮", memory:"回忆", ask:"求婚", accept:"我愿意" };
+      stage.textContent = labels[name] || name;
+    }
+
+    function daysSince(dateStr) {
+      var start = new Date(dateStr + "T00:00:00");
+      if (isNaN(start.getTime())) return 0;
+      var now = new Date();
+      var d = Math.floor((now - start) / 86400000);
+      return d >= 0 ? d : 0;
+    }
+
+    function gotoMemory() {
+      showPhase("memory");
+      var photo = $("photo");
+      photo.classList.remove("is-revealed");
+      void photo.offsetWidth;
+      photo.classList.add("is-revealed");
+    }
+
+    function resetNoBtn() {
+      var no = $("btn-no");
+      no.style.position = "";
+      no.style.left = "";
+      no.style.top = "";
+      no.style.transform = "";
+      no.textContent = "不愿意";
+    }
+
+    function dodgeNo() {
+      noCount += 1;
+      var no = $("btn-no");
+      no.textContent = CONFIG.noTease[(noCount - 1) % CONFIG.noTease.length];
+      var rect = scene.getBoundingClientRect();
+      var btnW = no.offsetWidth || 90;
+      var btnH = no.offsetHeight || 44;
+      var pad = 12;
+      var maxX = rect.width - btnW - pad;
+      var maxY = rect.height - btnH - pad;
+      no.style.position = "absolute";
+      no.style.left = (pad + Math.random() * Math.max(0, maxX - pad)) + "px";
+      no.style.top = (pad + Math.random() * Math.max(0, maxY - pad)) + "px";
+    }
+
+    function fireworks() {
+      var colors = ["#ffd54f","#ffb300","#ff8a65","#f06292","#81c784","#fff"];
+      for (var i = 0; i < 8; i++) {
+        (function (k) {
+          setTimeout(function () {
+            var burst = document.createElement("div");
+            burst.className = "firework";
+            burst.style.left = (15 + Math.random() * 70) + "%";
+            burst.style.top = (10 + Math.random() * 40) + "%";
+            var color = colors[k % colors.length];
+            for (var p = 0; p < 12; p++) {
+              var sp = document.createElement("span");
+              sp.className = "spark";
+              var ang = (Math.PI * 2 * p) / 12;
+              var dist = 30 + Math.random() * 20;
+              sp.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+              sp.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+              sp.style.background = color;
+              sp.style.boxShadow = "0 0 6px " + color;
+              burst.appendChild(sp);
+            }
+            scene.appendChild(burst);
+            setTimeout(function () { burst.remove(); }, 1200);
+          }, k * 250);
+        })(i);
+      }
+    }
+
+    function gotoAccept() {
+      showPhase("accept");
+      $("days").textContent = CONFIG.daysLabel + " " + daysSince(CONFIG.proposalDate) + " 天 ❤️";
+      fireworks();
+    }
+
+    function init() {
+      buildStars();
+      $("intro-text").textContent = CONFIG.intro;
+      $("match-tip").textContent = CONFIG.matchHint;
+      $("memory-text").textContent = CONFIG.memory;
+      $("caption").textContent = CONFIG.caption;
+      $("photo").src = CONFIG.image;
+      $("question").textContent = CONFIG.ask;
+      $("btn-yes").textContent = CONFIG.yesText;
+      $("accept-text").textContent = CONFIG.accept;
+
+      $("btn-start").addEventListener("click", function () { showPhase("match"); });
+      $("btn-ask").addEventListener("click", function () { noCount = 0; resetNoBtn(); showPhase("ask"); });
+      $("btn-yes").addEventListener("click", gotoAccept);
+      $("btn-no").addEventListener("click", dodgeNo);
+      $("btn-done").addEventListener("click", function () {
+        // 重新开始
+        noCount = 0;
+        resetNoBtn();
+        var ph = $("photo"); ph.classList.remove("is-revealed");
+        showPhase("intro");
+      });
+
+      function light() {
+        var match = $("match");
+        var candle = $("candle");
+        if (match.classList.contains("is-struck")) return;
+        match.classList.add("is-struck");
+        candle.classList.add("is-lit");
+        setTimeout(gotoMemory, 900);
+      }
+      ["match","candle"].forEach(function (id) {
+        var t = $(id);
+        t.addEventListener("click", light);
+        t.addEventListener("touchstart", function (e) { e.preventDefault(); light(); }, { passive: false });
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
