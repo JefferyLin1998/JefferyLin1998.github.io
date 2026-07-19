@@ -76,7 +76,7 @@
     el.proposalScene = $("proposal-scene");
     el.proposalStage = $("proposal-stage");
     el.silStage = $("sil-stage");
-    el.silSceneArt = $("sil-scene-art");
+    el.silSceneMedia = $("sil-scene-media");
     el.silSky = $("sil-sky");
     el.silCelestial = $("sil-celestial");
     el.silStageBadge = $("silhouette-stage");
@@ -1156,15 +1156,23 @@
     $("sil-scene-title").textContent = scene.title;
     $("sil-scene-location").textContent = "📍 " + scene.location;
 
-    var art = (SIL_ART[scene.scene] || SIL_ART.military)();
-    el.silSceneArt.innerHTML = art;
-    el.silSceneArt.dataset.scene = scene.scene;
+    if (scene.photo) {
+      el.silSceneMedia.innerHTML =
+        '<div class="sil-photo-wrap"><img class="sil-photo" src="' + scene.photo +
+        '" alt="' + scene.title + '" loading="lazy" /><div class="sil-photo-polaroid-tape"></div></div>';
+      el.silSceneMedia.className = "sil-scene-media sil-scene-media-photo";
+    } else {
+      var art = (SIL_ART[scene.scene] || SIL_ART.military)();
+      el.silSceneMedia.innerHTML = art;
+      el.silSceneMedia.className = "sil-scene-media sil-scene-media-art";
+      el.silSceneMedia.dataset.scene = scene.scene || "";
+    }
 
     var narration = $("sil-narration");
     narration.textContent = "";
-    el.silSceneArt.style.opacity = "0";
-    void el.silSceneArt.offsetWidth;
-    el.silSceneArt.style.opacity = "1";
+    el.silSceneMedia.style.opacity = "0";
+    void el.silSceneMedia.offsetWidth;
+    el.silSceneMedia.style.opacity = "1";
 
     if (el.silStageBadge) {
       el.silStageBadge.textContent = "第 " + (index + 1) + " 幕 / " + total;
