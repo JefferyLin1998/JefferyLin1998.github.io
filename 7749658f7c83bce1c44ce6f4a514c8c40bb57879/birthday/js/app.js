@@ -80,6 +80,11 @@
     el.silSky = $("sil-sky");
     el.silCelestial = $("sil-celestial");
     el.silStageBadge = $("silhouette-stage");
+    el.ringPreviewCanvas = $("ring-preview-canvas");
+    el.ringDragHint = $("ring-drag-hint");
+    el.ringStepPanel = $("ring-step-panel");
+    el.ringStepLabel = $("ring-step-label");
+    el.ringSparkles = $("ring-sparkles");
   }
 
   function loadContent() {
@@ -466,6 +471,10 @@
       startSilhouette(station);
     }
 
+    if (type === "ringdesign" && station) {
+      startRingDesign(station);
+    }
+
     if (type === "memory" && station) {
       $("overlay-memory-city").textContent = station.city;
       el.memoryIcon.textContent = station.icon;
@@ -502,6 +511,14 @@
     var overlay = $("overlay-" + type);
     if (overlay) overlay.hidden = true;
     activeStation = null;
+    if (type === "ringdesign") {
+      if (ringRafId) {
+        cancelAnimationFrame(ringRafId);
+        ringRafId = null;
+      }
+      ringDragging = false;
+      if (el.ringDragHint) el.ringDragHint.classList.remove("is-hidden");
+    }
     if (!document.querySelector(".project-overlay:not([hidden])")) {
       document.body.classList.remove("overlay-open");
     }
@@ -1269,6 +1286,496 @@
     }
   }
 
+  /* ── 三亚站：设计婚戒 ── */
+  var ringStep = "material";
+  var ringChoices = { material: null, stone: null, setting: null, engraving: "" };
+
+  function getRingData() {
+    return content.sanyaRing || { materials: [], stones: [], settings: [] };
+  }
+
+  var RING_STEP_ORDER = ["material", "stone", "setting", "engraving", "done"];
+
+  /* ── 3D 戒指渲染（canvas） ── */
+  var ringViewAngle = 0;
+  var ringTilt = -0.35;
+  var ringAutoSpin = true;
+  var ringDragging = false;
+  var ringLastX = 0;
+  var ringLastY = 0;
+  var ringVel = 0.4;
+  var ringRafId = null;
+
+  function ringCurrentConfig() {
+    var data = getRingData();
+    var m = (data.materials || []).find(function (x) { return x.id === ringChoices.material; }) || data.materials[0] || { color: "#e8eaed", shine: "#ffffff" };
+    var s = (data.stones || []).find(function (x) { return x.id === ringChoices.stone; }) || { color: null, sparkle: false };
+    return {
+      bandColor: m.color || "#e8eaed",
+      shineColor: m.shine || "#ffffff",
+      stoneColor: s.color,
+      sparkle: !!s.sparkle,
+      setting: ringChoices.setting
+    };
+  }
+
+  function darken(hex, amt) {
+    var c = hexToRgb(hex);
+    if (!c) return hex;
+    return "rgb(" + Math.round(c.r * (1 - amt)) + "," + Math.round(c.g * (1 - amt)) + "," + Math.round(c.b * (1 - amt)) + ")";
+  }
+
+  function lighten(hex, amt) {
+    var c = hexToRgb(hex);
+    if (!c) return hex;
+    return "rgb(" + Math.round(c.r + (255 - c.r) * amt) + "," + Math.round(c.g + (255 - c.g) * amt) + "," + Math.round(c.b + (255 - c.b) * amt) + ")";
+  }
+
+  function hexToRgb(hex) {
+    var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
+  }
+
+  function drawRing3D() {
+    var canvas = el.ringPreviewCanvas;
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width;
+    var H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    var cfg = ringCurrentConfig();
+    var cx = W / 2;
+    var cy = H / 2 + 30;
+    var R = 150;
+    var tube = 26;
+
+    var cosT = Math.cos(ringTilt);
+    var sinT = Math.sin(ringTilt);
+    var cosA = Math.cos(ringViewAngle);
+    var sinA = Math.sin(ringViewAngle);
+
+    var pts = [];
+    var segs = 72;
+    var tubeSegs = 18;
+    for (var i = 0; i < segs; i++) {
+      var a = (Math.PI * 2 * i) / segs;
+      var ringX = R * Math.cos(a);
+      var ringZ = R * Math.sin(a);
+      var row = [];
+      for (var j = 0; j <= tubeSegs; j++) {
+        var tb = (Math.PI * 2 * j) / tubeSegs;
+        var nx = Math.cos(tb);
+        var ny = Math.sin(tb);
+        var px = ringX + nx * tube;
+        var py = ny * tube;
+        var pz = ringZ;
+        var x1 = px * cosA + pz * sinA;
+        var z1 = -px * sinA + pz * cosA;
+        var y2 = py * cosT - z1 * sinT;
+        var z2 = py * sinT + z1 * cosT;
+        row.push({ x: cx + x1, y: cy + y2, z: z2, nx: nx, ny: ny, ringA: a });
+      }
+      pts.push(row);
+    }
+
+    var faces = [];
+    for (var ii = 0; ii < segs; ii++) {
+      for (var jj = 0; jj < tubeSegs; jj++) {
+        var p00 = pts[ii][jj];
+        var p01 = pts[ii][jj + 1];
+        var p10 = pts[(ii + 1) % segs][jj];
+        var p11 = pts[(ii + 1) % segs][jj + 1];
+        var avgZ = (p00.z + p01.z + p10.z + p11.z) / 4;
+
+        var upX = Math.cos(p00.ringA);
+        var upZ = Math.sin(p00.ringA);
+        var ux1 = upX * cosA + upZ * sinA;
+        var uz1 = -upX * sinA + upZ * cosA;
+        var ny2 = p00.ny * cosT - uz1 * sinT;
+        var nz2 = p00.ny * sinT + uz1 * cosT;
+        var light = Math.max(0.15, -nz2 * 0.7 + ny2 * 0.35 + 0.4);
+
+        faces.push({ pts: [p00, p01, p11, p10], z: avgZ, light: light, type: "band" });
+      }
+    }
+
+    var stoneItem = null;
+    if (cfg.stoneColor) {
+      var topTheta = Math.PI / 2;
+      var ringTopX = R * Math.cos(topTheta);
+      var ringTopZ = R * Math.sin(topTheta);
+      var rx1 = ringTopX * cosA + ringTopZ * sinA;
+      var rz1 = -ringTopX * sinA + ringTopZ * cosA;
+      var stoneScreenX = cx + rx1;
+      var stoneScreenY = cy + (-rz1 * sinT);
+      var stoneDepth = rz1 * cosT;
+      var stoneScale = 1 + stoneDepth / 600;
+      stoneItem = {
+        type: "stone",
+        z: stoneDepth,
+        sx: stoneScreenX,
+        sy: stoneScreenY,
+        scale: stoneScale
+      };
+      faces.push(stoneItem);
+    }
+
+    faces.sort(function (a, b) { return a.z - b.z; });
+
+    var bandLight = lighten(cfg.bandColor, 0.55);
+    var bandDark = darken(cfg.bandColor, 0.45);
+
+    faces.forEach(function (f) {
+      if (f.type === "stone") {
+        drawStone3D(ctx, f.sx, f.sy, 30 * f.scale, cfg, ringViewAngle);
+      } else {
+        var col = mixColor(bandDark, bandLight, f.light);
+        ctx.beginPath();
+        ctx.moveTo(f.pts[0].x, f.pts[0].y);
+        for (var k = 1; k < f.pts.length; k++) ctx.lineTo(f.pts[k].x, f.pts[k].y);
+        ctx.closePath();
+        ctx.fillStyle = col;
+        ctx.fill();
+      }
+    });
+  }
+
+  function mixColor(c1, c2, t) {
+    var a = parseColor(c1);
+    var b = parseColor(c2);
+    if (!a || !b) return c1;
+    return "rgb(" + Math.round(a.r + (b.r - a.r) * t) + "," + Math.round(a.g + (b.g - a.g) * t) + "," + Math.round(a.b + (b.b - a.b) * t) + ")";
+  }
+
+  function parseColor(c) {
+    if (!c) return null;
+    var h = hexToRgb(c);
+    if (h) return h;
+    var m = /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c);
+    return m ? { r: +m[1], g: +m[2], b: +m[3] } : null;
+  }
+
+  function drawStone3D(ctx, cx, cy, r, cfg) {
+    ctx.save();
+
+    var g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.1, cx, cy, r);
+    g.addColorStop(0, "#ffffff");
+    g.addColorStop(0.35, lighten(cfg.stoneColor, 0.3));
+    g.addColorStop(0.7, cfg.stoneColor);
+    g.addColorStop(1, darken(cfg.stoneColor, 0.4));
+
+    if (cfg.setting === "bezel") {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 6, 0, Math.PI * 2);
+      ctx.fillStyle = cfg.bandColor;
+      ctx.fill();
+    } else if (cfg.setting === "prong") {
+      ctx.strokeStyle = cfg.bandColor;
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      var prongs = 4;
+      for (var p = 0; p < prongs; p++) {
+        var pa = (Math.PI * 2 * p) / prongs + Math.PI / 4;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(pa) * (r - 4), cy + Math.sin(pa) * (r - 4));
+        ctx.lineTo(cx + Math.cos(pa) * (r + 6), cy + Math.sin(pa) * (r + 6));
+        ctx.stroke();
+      }
+    }
+
+    var facets = 8;
+    ctx.beginPath();
+    for (var i = 0; i <= facets; i++) {
+      var fa = (Math.PI * 2 * i) / facets;
+      var fx = cx + Math.cos(fa) * r;
+      var fy = cy + Math.sin(fa) * r;
+      if (i === 0) ctx.moveTo(fx, fy); else ctx.lineTo(fx, fy);
+    }
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    for (var k = 0; k < facets; k++) {
+      var ka = (Math.PI * 2 * k) / facets - Math.PI / 2;
+      ctx.lineTo(cx + Math.cos(ka) * r, cy + Math.sin(ka) * r);
+      ctx.lineTo(cx, cy);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.arc(cx - r * 0.3, cy - r * 0.35, r * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (cfg.setting === "pave") {
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      for (var pv = 0; pv < 8; pv++) {
+        var pva = (Math.PI * 2 * pv) / 8;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(pva) * (r + 12), cy + Math.sin(pva) * (r + 12), 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  function ringAnimLoop() {
+    if (ringAutoSpin && !ringDragging) {
+      ringViewAngle += 0.006;
+    }
+    drawRing3D();
+    ringRafId = requestAnimationFrame(ringAnimLoop);
+  }
+
+  function bindRingDrag() {
+    var canvas = el.ringPreviewCanvas;
+    if (!canvas || canvas.dataset.bound === "1") return;
+    canvas.dataset.bound = "1";
+
+    function start(x, y) {
+      ringDragging = true;
+      ringAutoSpin = false;
+      ringLastX = x;
+      ringLastY = y;
+      if (el.ringDragHint) el.ringDragHint.classList.add("is-hidden");
+    }
+    function move(x, y) {
+      if (!ringDragging) return;
+      var dx = x - ringLastX;
+      var dy = y - ringLastY;
+      ringViewAngle += dx * 0.012;
+      ringTilt = Math.max(-1.2, Math.min(1.2, ringTilt + dy * 0.008));
+      ringLastX = x;
+      ringLastY = y;
+    }
+    function end() {
+      ringDragging = false;
+    }
+
+    canvas.addEventListener("mousedown", function (e) { start(e.clientX, e.clientY); });
+    window.addEventListener("mousemove", function (e) { move(e.clientX, e.clientY); });
+    window.addEventListener("mouseup", end);
+
+    canvas.addEventListener("touchstart", function (e) {
+      if (e.touches[0]) { e.preventDefault(); start(e.touches[0].clientX, e.touches[0].clientY); }
+    }, { passive: false });
+    canvas.addEventListener("touchmove", function (e) {
+      if (e.touches[0]) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); }
+    }, { passive: false });
+    canvas.addEventListener("touchend", end);
+  }
+
+  function renderRingPreview() {
+    if (!el.ringPreviewCanvas) return;
+    if (!ringRafId) {
+      bindRingDrag();
+      ringAnimLoop();
+    } else {
+      drawRing3D();
+    }
+
+    if (el.ringSparkles) {
+      var s = (getRingData().stones || []).find(function (x) { return x.id === ringChoices.stone; });
+      el.ringSparkles.classList.toggle("active", !!(s && s.sparkle));
+    }
+  }
+
+  function buildRingOptions(step) {
+    var data = getRingData();
+    var container;
+    var items;
+    var valueKey = step;
+
+    if (step === "material") {
+      container = $("ring-material-opts");
+      items = data.materials || [];
+    } else if (step === "stone") {
+      container = $("ring-stone-opts");
+      items = data.stones || [];
+    } else if (step === "setting") {
+      container = $("ring-setting-opts");
+      items = data.settings || [];
+    } else {
+      return;
+    }
+
+    container.innerHTML = "";
+    items.forEach(function (item) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ring-option";
+      btn.dataset.value = item.id;
+
+      var swatch = "";
+      if (item.color) {
+        swatch = '<span class="ring-swatch" style="background:' + item.color + '"></span>';
+      } else if (step === "setting") {
+        swatch = '<span class="ring-swatch ring-swatch-setting">' + item.name.charAt(0) + '</span>';
+      }
+
+      var label = '<span class="ring-option-label">' + item.name + '</span>';
+      var desc = item.desc ? '<span class="ring-option-desc">' + item.desc + '</span>' : "";
+
+      btn.innerHTML = swatch + '<span class="ring-option-text">' + label + desc + '</span>';
+      btn.classList.toggle("selected", ringChoices[valueKey] === item.id);
+
+      btn.addEventListener("click", function () {
+        ringChoices[valueKey] = item.id;
+        Array.prototype.forEach.call(container.children, function (c) {
+          c.classList.toggle("selected", c.dataset.value === item.id);
+        });
+        renderRingPreview();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function showRingStep(step) {
+    ringStep = step;
+    el.ringStepPanel.querySelectorAll(".ring-step").forEach(function (s) {
+      s.classList.toggle("active", s.dataset.step === step);
+    });
+
+    var labels = (getRingData().steps) || {};
+    var stepLabel = step === "done" ? "完成" : ("第 " + (RING_STEP_ORDER.indexOf(step) + 1) + " 步");
+    if (el.ringStepLabel) el.ringStepLabel.textContent = labels[step] || stepLabel;
+
+    if (step === "material") $("ring-material-title").textContent = labels.material || "选材质";
+    if (step === "stone") $("ring-stone-title").textContent = labels.stone || "选主石";
+    if (step === "setting") $("ring-setting-title").textContent = labels.setting || "选镶嵌";
+    if (step === "engraving") $("ring-engraving-title").textContent = labels.engraving || "刻字";
+
+    if (step === "done") {
+      var teases = getRingData().teases || ["不错！"];
+      $("ring-tease").textContent = teases[Math.floor(Math.random() * teases.length)];
+      $("ring-finalize-btn").textContent = getRingData().finalCta || "生成设计图";
+    }
+
+    var idx = RING_STEP_ORDER.indexOf(step);
+    $("ring-prev-btn").disabled = idx === 0;
+    $("ring-next-btn").style.display = step === "done" ? "none" : "";
+    $("ring-next-btn").disabled = false;
+  }
+
+  function ringNext() {
+    var idx = RING_STEP_ORDER.indexOf(ringStep);
+    if (idx < RING_STEP_ORDER.length - 1) {
+      showRingStep(RING_STEP_ORDER[idx + 1]);
+    } else {
+      finalizeRing();
+    }
+  }
+
+  function ringPrev() {
+    var idx = RING_STEP_ORDER.indexOf(ringStep);
+    if (idx > 0) showRingStep(RING_STEP_ORDER[idx - 1]);
+  }
+
+  function finalizeRing() {
+    var data = getRingData();
+    var materials = data.materials || [];
+    var stones = data.stones || [];
+    var settings = data.settings || [];
+
+    var myM = materials.find(function (x) { return x.id === ringChoices.material; }) || materials[0];
+    var myS = stones.find(function (x) { return x.id === ringChoices.stone; }) || stones[0];
+    var mySet = settings.find(function (x) { return x.id === ringChoices.setting; }) || settings[0];
+    var engraving = ringChoices.engraving || "（无）";
+
+    var myDesc = (myM ? myM.name : "？") + " · " + (myS ? myS.name : "？") + " · " + (mySet ? mySet.name : "？");
+
+    closeOverlay("ringdesign");
+    setTimeout(function () {
+      showRingResult(data, myDesc, engraving);
+    }, 250);
+  }
+
+  function showRingResult(data, myDesc, engraving) {
+    var overlay = $("overlay-ringdesign");
+    overlay.hidden = false;
+    document.body.classList.add("overlay-open");
+
+    var real = data.realRing || { desc: "" };
+    var html = '';
+    html += '<div class="ring-result-overlay" id="ring-result-content">';
+    html += '  <div class="ring-result-card">';
+    html += '    <h2 class="ring-result-title">' + (data.compareTitle || "你的设计") + '</h2>';
+    html += '    <div class="ring-result-row">';
+    html += '      <div class="ring-result-col">';
+    html += '        <p class="ring-result-label">你设计的</p>';
+    html += '        <div class="ring-result-mini-svg" id="ring-result-mini"></div>';
+    html += '        <p class="ring-result-desc">' + myDesc + '</p>';
+    html += '        <p class="ring-result-engraving">内壁：「' + engraving + '」</p>';
+    html += '      </div>';
+    html += '      <div class="ring-result-vs">VS</div>';
+    html += '      <div class="ring-result-col ring-result-real">';
+    html += '        <p class="ring-result-label">' + (real.label || "我们真实的") + '</p>';
+    html += '        <div class="ring-result-real-icon">💍</div>';
+    html += '        <p class="ring-result-desc">' + (real.desc || "") + '</p>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '    <p class="ring-result-vow">' + (data.finalVow || "") + '</p>';
+    html += '    <button type="button" class="btn-primary" id="ring-result-done">打卡这一站 ✓</button>';
+    html += '  </div>';
+    html += '</div>';
+
+    var old = $("ring-result-content");
+    if (old) old.remove();
+
+    var wrap = $("ring-design-wrap");
+    wrap.insertAdjacentHTML("beforebegin", html);
+
+    var mini = $("ring-result-mini");
+    if (mini && el.ringPreviewCanvas) {
+      var snap = document.createElement("img");
+      snap.src = el.ringPreviewCanvas.toDataURL("image/png");
+      snap.alt = "你设计的戒指";
+      snap.style.maxWidth = "120px";
+      snap.style.borderRadius = "10px";
+      mini.appendChild(snap);
+    }
+
+    $("ring-result-done").addEventListener("click", function () {
+      var resEl = $("ring-result-content");
+      if (resEl) resEl.remove();
+      if (activeStation) markCompleted(activeStation.id);
+      closeOverlay("ringdesign");
+      advanceToNextStation();
+    });
+  }
+
+  function startRingDesign(station) {
+    var data = getRingData();
+    ringStep = "material";
+    ringChoices = { material: null, stone: null, setting: null, engraving: "" };
+
+    $("ring-intro").textContent = data.intro || "";
+    $("ring-material-hint").textContent = data.materialHint || "";
+    $("ring-stone-hint").textContent = data.stoneHint || "";
+    $("ring-setting-hint").textContent = data.settingHint || "";
+    $("ring-engraving-hint").textContent = data.engravingHint || "";
+    var inp = $("ring-engraving-input");
+    inp.placeholder = data.engravingPlaceholder || "";
+    inp.value = "";
+
+    ringChoices.material = (data.materials && data.materials[0] && data.materials[0].id) || null;
+    ringChoices.stone = (data.stones && data.stones[0] && data.stones[0].id) || null;
+    ringChoices.setting = (data.settings && data.settings[0] && data.settings[0].id) || null;
+
+    buildRingOptions("material");
+    buildRingOptions("stone");
+    buildRingOptions("setting");
+
+    renderRingPreview();
+    showRingStep("material");
+  }
+
   function renderQuestion() {
     var q = content.questions[quizIndex];
     el.questionText.textContent = q.text;
@@ -1499,6 +2006,15 @@
       closeOverlay("silhouette");
       advanceToNextStation();
     });
+
+    $("ring-prev-btn").addEventListener("click", ringPrev);
+    $("ring-next-btn").addEventListener("click", ringNext);
+    $("ring-engraving-confirm").addEventListener("click", function () {
+      ringChoices.engraving = $("ring-engraving-input").value.trim();
+      renderRingPreview();
+      ringNext();
+    });
+    $("ring-finalize-btn").addEventListener("click", finalizeRing);
 
     $("letter-done-btn").addEventListener("click", function () {
       var station = content.stations.find(function (s) {

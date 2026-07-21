@@ -270,6 +270,61 @@
       </div>
     </section>
 
+    <!-- 浮层：设计婚戒（三亚） -->
+    <section id="overlay-ringdesign" class="project-overlay" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="ringdesign">← 返回旅程</button>
+        <span class="overlay-badge" id="ring-step-label">第 1 步</span>
+      </div>
+
+      <div class="ring-design-wrap" id="ring-design-wrap">
+        <div class="ring-preview-stage" id="ring-preview-stage">
+          <canvas class="ring-preview-canvas" id="ring-preview-canvas" width="600" height="600"></canvas>
+          <div class="ring-sparkles" id="ring-sparkles" aria-hidden="true"></div>
+          <div class="ring-drag-hint" id="ring-drag-hint">拖动旋转 · 360° 观察</div>
+        </div>
+
+        <div class="ring-step-panel" id="ring-step-panel">
+          <p class="ring-intro" id="ring-intro"></p>
+
+          <div class="ring-step active" data-step="material">
+            <h3 class="ring-step-title" id="ring-material-title"></h3>
+            <p class="ring-step-hint" id="ring-material-hint"></p>
+            <div class="ring-options" id="ring-material-opts"></div>
+          </div>
+
+          <div class="ring-step" data-step="stone">
+            <h3 class="ring-step-title" id="ring-stone-title"></h3>
+            <p class="ring-step-hint" id="ring-stone-hint"></p>
+            <div class="ring-options" id="ring-stone-opts"></div>
+          </div>
+
+          <div class="ring-step" data-step="setting">
+            <h3 class="ring-step-title" id="ring-setting-title"></h3>
+            <p class="ring-step-hint" id="ring-setting-hint"></p>
+            <div class="ring-options" id="ring-setting-opts"></div>
+          </div>
+
+          <div class="ring-step" data-step="engraving">
+            <h3 class="ring-step-title" id="ring-engraving-title"></h3>
+            <p class="ring-step-hint" id="ring-engraving-hint"></p>
+            <input type="text" id="ring-engraving-input" class="ring-engraving-input" maxlength="20" />
+            <button type="button" class="btn-primary ring-confirm-btn" id="ring-engraving-confirm">就这个字</button>
+          </div>
+
+          <div class="ring-step" data-step="done">
+            <div class="ring-tease" id="ring-tease"></div>
+            <button type="button" class="btn-primary ring-confirm-btn" id="ring-finalize-btn"></button>
+          </div>
+
+          <div class="ring-nav">
+            <button type="button" class="ring-nav-btn ring-nav-prev" id="ring-prev-btn">‹ 上一步</button>
+            <button type="button" class="ring-nav-btn ring-nav-next" id="ring-next-btn">下一步 ›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- 浮层：情书（三亚） -->
     <section id="overlay-letter" class="project-overlay" hidden>
       <div class="overlay-topbar">

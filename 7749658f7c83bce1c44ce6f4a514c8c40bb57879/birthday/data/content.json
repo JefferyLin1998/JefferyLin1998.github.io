@@ -41,10 +41,10 @@
     {
       "id": "sanya",
       "city": "三亚",
-      "icon": "🌊",
-      "tagline": "海边的你，最美的风景",
-      "type": "letter",
-      "memory": "亚龙湾的浪拍在脚上，阳光落在你头发上，那一刻我觉得世界可以很小——小到有你就够。"
+      "icon": "💍",
+      "tagline": "在这里，我们挑中了那枚戒指",
+      "type": "ringdesign",
+      "memory": "海风很轻，首饰店的灯很亮。我们一起比划、一起纠结，最后选中的那枚——就是我每天戴在手上的承诺。"
     },
     {
       "id": "yunnan",
@@ -245,6 +245,48 @@
     "image": "./pictures/北海.jpg",
     "size": 3,
     "success": "拼好啦！这片海真的太美了 ❤️"
+  },
+  "sanyaRing": {
+    "title": "三亚站 · 设计我们的婚戒",
+    "intro": "还记得在三亚那个下午吗？我们一头扎进首饰店，对着柜台挑了又挑。今天，你来当设计师，亲手设计一枚属于我们的婚戒～",
+    "realRing": {
+      "label": "其实，我们最终选的婚戒是",
+      "desc": "一枚铂金钻戒。不浮夸、不张扬，戴在手上刚刚好——就像我们的生活。"
+    },
+    "materialHint": "选个材质吧，它决定戒指的底色～",
+    "stoneHint": "主石？要不要来一颗闪的？",
+    "settingHint": "镶嵌方式，这个很影响上手效果哦～",
+    "engravingHint": "在内壁刻点什么吧，只有我们俩知道～",
+    "engravingPlaceholder": "比如：Forever Yours",
+    "steps": {
+      "material": "第 1 步 · 选材质",
+      "stone": "第 2 步 · 选主石",
+      "setting": "第 3 步 · 选镶嵌",
+      "engraving": "第 4 步 · 内壁刻字",
+      "done": "完成 · 看看你的设计"
+    },
+    "teases": ["嗯～这枚有点东西！", "眼光不错嘛～", "这个组合很少见哦！", "我看行！"],
+    "finalCta": "生成设计图",
+    "compareTitle": "你的设计 vs 我们真实的婚戒",
+    "finalVow": "无论设计出什么样子，戴在手上的那枚，才是我们真正的承诺。",
+    "materials": [
+      { "id": "platinum", "name": "铂金", "color": "#e8eaed", "shine": "#ffffff" },
+      { "id": "gold", "name": "黄金", "color": "#ffd54f", "shine": "#fff8c2" },
+      { "id": "rosegold", "name": "玫瑰金", "color": "#e8b4a0", "shine": "#fce4d6" }
+    ],
+    "stones": [
+      { "id": "diamond", "name": "钻石", "color": "#ffffff", "sparkle": true },
+      { "id": "sapphire", "name": "蓝宝石", "color": "#5c8ee0", "sparkle": true },
+      { "id": "ruby", "name": "红宝石", "color": "#e53935", "sparkle": true },
+      { "id": "emerald", "name": "祖母绿", "color": "#43a047", "sparkle": true },
+      { "id": "none", "name": "素圈", "color": null, "sparkle": false }
+    ],
+    "settings": [
+      { "id": "prong", "name": "爪镶", "desc": "经典·把石头高高托起" },
+      { "id": "bezel", "name": "包镶", "desc": "稳重·一圈金属包住" },
+      { "id": "pave", "name": "排镶", "desc": "闪耀·一圈小钻围绕" },
+      { "id": "channel", "name": "槽镶", "desc": "低调·嵌进金属槽里" }
+    ]
   },
   "questions": [
     {
