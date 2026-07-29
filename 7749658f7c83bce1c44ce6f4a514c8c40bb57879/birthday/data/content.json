@@ -50,9 +50,9 @@
       "id": "yunnan",
       "city": "云南",
       "icon": "🌸",
-      "tagline": "风花雪月的地方",
-      "type": "memory",
-      "memory": "洱海的月、古城的石板路、玉龙雪山下的云——每一帧都想和你再经历一次。"
+      "tagline": "昆明 · 大理 · 丽江，蜜月三城记",
+      "type": "comicmatch",
+      "memory": "蜜月那趟，我们一站一站往前走：昆明的湖光、大理的风、丽江的灯。今天，看看你还记不记得——这些画面，到底拍在哪儿。"
     },
     {
       "id": "sichuan",
@@ -286,6 +286,78 @@
       { "id": "bezel", "name": "包镶", "desc": "稳重·一圈金属包住" },
       { "id": "pave", "name": "排镶", "desc": "闪耀·一圈小钻围绕" },
       { "id": "channel", "name": "槽镶", "desc": "低调·嵌进金属槽里" }
+    ]
+  },
+  "yunnanMatch": {
+    "title": "云南站 · 漫画地址匹配",
+    "intro": "蜜月三城：昆明 → 大理 → 丽江。下面每张「漫画格」都来自我们的旅途，请选出它拍在哪里～答对 5 题即可通关。",
+    "passCount": 5,
+    "note": "地点为根据画面暂猜，可在 content.json 里改正。",
+    "rounds": [
+      {
+        "id": "r1",
+        "image": "./pictures/云南/漫画/dali-gucheng.jpg",
+        "comicTitle": "第 1 格 · 白墙彩绘",
+        "correct": "大理 · 大理古城",
+        "options": ["昆明 · 翠湖公园", "大理 · 大理古城", "丽江 · 丽江古城", "大理 · 喜洲古镇"],
+        "wrongHint": "再看看身后的白族白墙和彩绘边饰～"
+      },
+      {
+        "id": "r2",
+        "image": "./pictures/云南/漫画/dali-erhai-swing.jpg",
+        "comicTitle": "第 2 格 · 水上秋千",
+        "correct": "大理 · 洱海边",
+        "options": ["昆明 · 滇池边", "大理 · 洱海边", "丽江 · 黑龙潭", "大理 · 苍山索道"],
+        "wrongHint": "背后那片宽阔的湖，是洱海哦。"
+      },
+      {
+        "id": "r3",
+        "image": "./pictures/云南/漫画/kunming-dianchi.jpg",
+        "comicTitle": "第 3 格 · 湖对岸的高楼",
+        "correct": "昆明 · 滇池边",
+        "options": ["大理 · 洱海边", "昆明 · 滇池边", "丽江 · 拉市海", "昆明 · 西山龙门"],
+        "wrongHint": "对岸是城市天际线——更像滇池，不太像洱海。"
+      },
+      {
+        "id": "r4",
+        "image": "./pictures/云南/漫画/dali-cangshan.jpg",
+        "comicTitle": "第 4 格 · 黄玫瑰与蓝湖",
+        "correct": "大理 · 洱海双廊一带",
+        "options": ["昆明 · 滇池海埂", "大理 · 洱海双廊一带", "丽江 · 束河古镇", "大理 · 大理古城南门"],
+        "wrongHint": "湖水、白墙蓝瓦、沿湖建筑——双廊/洱海沿线更贴。"
+      },
+      {
+        "id": "r5",
+        "image": "./pictures/云南/漫画/dali-erhai-bench.jpg",
+        "comicTitle": "第 5 格 · 树下躺平",
+        "correct": "大理 · 洱海生态廊道",
+        "options": ["昆明 · 翠湖", "大理 · 洱海生态廊道", "丽江 · 玉龙雪山脚下", "大理 · 喜洲"],
+        "wrongHint": "湖面、芦苇、远山——洱海边散步道的感觉。"
+      },
+      {
+        "id": "r6",
+        "image": "./pictures/云南/漫画/lijiang-bridge.jpg",
+        "comicTitle": "第 6 格 · 石拱桥",
+        "correct": "丽江 · 古城水系附近",
+        "options": ["大理 · 洋人街", "昆明 · 南强街", "丽江 · 古城水系附近", "大理 · 才村码头"],
+        "wrongHint": "单拱石桥 + 河岸，更像丽江水系边的一景。"
+      },
+      {
+        "id": "r7",
+        "image": "./pictures/云南/漫画/lijiang-yulong.jpg",
+        "comicTitle": "第 7 格 · 心形祈愿",
+        "correct": "丽江 · 玉龙雪山祈愿处",
+        "options": ["大理 · 崇圣寺三塔", "丽江 · 玉龙雪山祈愿处", "昆明 · 金殿", "丽江 · 丽江古城大水车"],
+        "wrongHint": "木栏上挂满心形许愿牌和铃铛，雪山景区很常见。"
+      },
+      {
+        "id": "r8",
+        "image": "./pictures/云南/漫画/dali-riverside.jpg",
+        "comicTitle": "第 8 格 · 河畔惊叹",
+        "correct": "大理 · 古城护城河一带",
+        "options": ["丽江 · 黑龙潭", "大理 · 古城护城河一带", "昆明 · 大观楼", "大理 · 苍山感通寺"],
+        "wrongHint": "河道、绿树、传统屋顶——更贴近大理城边水景。"
+      }
     ]
   },
   "questions": [

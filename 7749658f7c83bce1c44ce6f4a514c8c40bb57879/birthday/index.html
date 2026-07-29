@@ -125,6 +125,37 @@
       </div>
     </section>
 
+    <!-- 浮层：漫画地址匹配（云南） -->
+    <section id="overlay-comicmatch" class="project-overlay overlay-comicmatch" hidden>
+      <div class="overlay-topbar comic-topbar">
+        <button type="button" class="btn-back comic-back" data-close="comicmatch">← 返回</button>
+        <span class="overlay-badge comic-badge" id="comic-progress">0 / 5</span>
+      </div>
+      <div class="comic-page" aria-hidden="true"></div>
+      <div class="comic-wrap" id="comic-wrap">
+        <p class="comic-intro" id="comic-intro"></p>
+        <div class="comic-manga-title" aria-hidden="true">蜜月漫游 · 地址篇</div>
+        <div class="comic-panel" id="comic-panel">
+          <div class="comic-caption" id="comic-caption">第 1 格</div>
+          <div class="comic-sfx" aria-hidden="true">SNAP!</div>
+          <div class="comic-frame">
+            <canvas id="comic-canvas" class="comic-canvas" width="720" height="900"></canvas>
+            <img id="comic-image" class="comic-image-src" alt="" hidden />
+            <div class="comic-speedlines" aria-hidden="true"></div>
+            <div class="comic-halftone" aria-hidden="true"></div>
+            <div class="comic-ink-edge" aria-hidden="true"></div>
+          </div>
+          <div class="comic-corner comic-corner-tl" aria-hidden="true"></div>
+          <div class="comic-corner comic-corner-br" aria-hidden="true"></div>
+        </div>
+        <div class="comic-bubble" id="comic-bubble">
+          <p class="comic-prompt">这张，到底拍在哪儿？！</p>
+        </div>
+        <div class="comic-options" id="comic-options"></div>
+        <p class="hint-msg comic-feedback" id="comic-feedback"></p>
+      </div>
+    </section>
+
     <!-- 浮层：回忆（青海等） -->
     <section id="overlay-memory" class="project-overlay" hidden>
       <div class="overlay-topbar">

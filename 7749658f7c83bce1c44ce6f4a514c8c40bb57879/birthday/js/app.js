@@ -19,6 +19,10 @@
   var unlockedUpTo = 0;
   var activeStation = null;
   var trainRunTimer = null;
+  var comicQueue = [];
+  var comicIndex = 0;
+  var comicCorrect = 0;
+  var comicBusy = false;
 
   var el = {};
 
@@ -85,6 +89,13 @@
     el.ringStepPanel = $("ring-step-panel");
     el.ringStepLabel = $("ring-step-label");
     el.ringSparkles = $("ring-sparkles");
+    el.comicIntro = $("comic-intro");
+    el.comicCaption = $("comic-caption");
+    el.comicImage = $("comic-image");
+    el.comicCanvas = $("comic-canvas");
+    el.comicOptions = $("comic-options");
+    el.comicFeedback = $("comic-feedback");
+    el.comicProgress = $("comic-progress");
   }
 
   function loadContent() {
@@ -473,6 +484,10 @@
 
     if (type === "ringdesign" && station) {
       startRingDesign(station);
+    }
+
+    if (type === "comicmatch" && station) {
+      startComicMatch(station);
     }
 
     if (type === "memory" && station) {
@@ -1774,6 +1789,259 @@
 
     renderRingPreview();
     showRingStep("material");
+  }
+
+  /* ── 云南站：漫画地址匹配 ── */
+  function getComicMatchData() {
+    return content.yunnanMatch || { title: "", intro: "", passCount: 5, rounds: [] };
+  }
+
+  function shuffleArray(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+
+  function updateComicProgress() {
+    var data = getComicMatchData();
+    var need = data.passCount || 5;
+    if (el.comicProgress) {
+      el.comicProgress.textContent = "CLEAR " + comicCorrect + "/" + need;
+    }
+  }
+
+  function posterizeChannel(v, levels) {
+    var step = 255 / (levels - 1);
+    return Math.round(Math.round(v / step) * step);
+  }
+
+  function applyComicFilter(img) {
+    var canvas = el.comicCanvas;
+    if (!canvas || !img || !img.naturalWidth) return;
+
+    var outW = 720;
+    var outH = 900;
+    canvas.width = outW;
+    canvas.height = outH;
+
+    var ctx = canvas.getContext("2d", { willReadFrequently: true });
+    var srcW = img.naturalWidth;
+    var srcH = img.naturalHeight;
+    var scale = Math.max(outW / srcW, outH / srcH);
+    var drawW = srcW * scale;
+    var drawH = srcH * scale;
+    var dx = (outW - drawW) / 2;
+    var dy = (outH - drawH) / 2;
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+
+    var w = outW;
+    var h = outH;
+    var imageData = ctx.getImageData(0, 0, w, h);
+    var data = imageData.data;
+    var gray = new Float32Array(w * h);
+    var i;
+    var r;
+    var g;
+    var b;
+    var lum;
+    var idx;
+
+    for (i = 0; i < data.length; i += 4) {
+      r = data[i];
+      g = data[i + 1];
+      b = data[i + 2];
+      lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      lum = (lum - 128) * 1.4 + 128;
+      lum = Math.max(0, Math.min(255, lum));
+      gray[i / 4] = lum;
+
+      r = posterizeChannel((r - 128) * 1.35 + 128, 4);
+      g = posterizeChannel((g - 128) * 1.35 + 128, 4);
+      b = posterizeChannel((b - 128) * 1.35 + 128, 4);
+
+      if (lum < 75) {
+        r = Math.floor(r * 0.45);
+        g = Math.floor(g * 0.45);
+        b = Math.floor(b * 0.45);
+      } else if (lum > 205) {
+        r = Math.min(255, r + 36);
+        g = Math.min(255, g + 36);
+        b = Math.min(255, b + 36);
+      }
+
+      data[i] = Math.max(0, Math.min(255, r));
+      data[i + 1] = Math.max(0, Math.min(255, g));
+      data[i + 2] = Math.max(0, Math.min(255, b));
+    }
+
+    var edges = new Uint8Array(w * h);
+    for (var y = 1; y < h - 1; y++) {
+      for (var x = 1; x < w - 1; x++) {
+        idx = y * w + x;
+        var gx =
+          -gray[idx - w - 1] +
+          gray[idx - w + 1] +
+          -2 * gray[idx - 1] +
+          2 * gray[idx + 1] +
+          -gray[idx + w - 1] +
+          gray[idx + w + 1];
+        var gy =
+          -gray[idx - w - 1] -
+          2 * gray[idx - w] -
+          gray[idx - w + 1] +
+          gray[idx + w - 1] +
+          2 * gray[idx + w] +
+          gray[idx + w + 1];
+        var mag = Math.sqrt(gx * gx + gy * gy);
+        edges[idx] = mag > 42 ? 1 : 0;
+      }
+    }
+
+    for (i = 0; i < edges.length; i++) {
+      if (!edges[i]) continue;
+      idx = i * 4;
+      data[idx] = 12;
+      data[idx + 1] = 12;
+      data[idx + 2] = 16;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  function loadComicPanel(src, altText) {
+    if (!el.comicImage) return;
+    el.comicImage.onload = function () {
+      applyComicFilter(el.comicImage);
+    };
+    el.comicImage.onerror = function () {
+      if (!el.comicCanvas) return;
+      var ctx = el.comicCanvas.getContext("2d");
+      el.comicCanvas.width = 720;
+      el.comicCanvas.height = 900;
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(0, 0, 720, 900);
+      ctx.fillStyle = "#fff";
+      ctx.font = "24px sans-serif";
+      ctx.fillText("加载失败", 300, 450);
+    };
+    el.comicImage.alt = altText || "蜜月漫画格";
+    el.comicImage.src = src;
+    if (el.comicImage.complete && el.comicImage.naturalWidth) {
+      applyComicFilter(el.comicImage);
+    }
+  }
+
+  function startComicMatch(station) {
+    var data = getComicMatchData();
+    comicBusy = false;
+    comicCorrect = 0;
+    comicIndex = 0;
+    comicQueue = shuffleArray(data.rounds || []);
+    if (el.comicIntro) el.comicIntro.textContent = data.intro || "";
+    updateComicProgress();
+    renderComicRound();
+  }
+
+  function renderComicRound() {
+    var data = getComicMatchData();
+    var round = comicQueue[comicIndex];
+    if (!round) {
+      comicQueue = shuffleArray(data.rounds || []);
+      comicIndex = 0;
+      round = comicQueue[0];
+    }
+    if (!round) return;
+
+    comicBusy = false;
+    if (el.comicFeedback) el.comicFeedback.textContent = "";
+    if (el.comicCaption) {
+      el.comicCaption.textContent = round.comicTitle || ("第 " + (comicIndex + 1) + " 格");
+    }
+
+    var sfx = document.querySelector("#comic-panel .comic-sfx");
+    if (sfx) {
+      sfx.style.animation = "none";
+      void sfx.offsetWidth;
+      sfx.style.animation = "";
+    }
+    var bubble = $("comic-bubble");
+    if (bubble) {
+      bubble.style.animation = "none";
+      void bubble.offsetWidth;
+      bubble.style.animation = "";
+    }
+
+    loadComicPanel(round.image, round.comicTitle || "蜜月漫画格");
+
+    var options = shuffleArray(round.options || []);
+    el.comicOptions.innerHTML = "";
+    options.forEach(function (opt, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "option-btn comic-option";
+      btn.innerHTML =
+        '<span class="comic-opt-mark">' +
+        String.fromCharCode(65 + i) +
+        '</span><span class="comic-opt-text">' +
+        opt +
+        "</span>";
+      btn.addEventListener("click", function () {
+        onComicOption(opt, btn, round);
+      });
+      el.comicOptions.appendChild(btn);
+    });
+  }
+
+  function onComicOption(choice, btn, round) {
+    if (comicBusy) return;
+    comicBusy = true;
+
+    var buttons = el.comicOptions.querySelectorAll(".option-btn");
+    buttons.forEach(function (b) {
+      b.classList.remove("correct", "wrong");
+      b.disabled = true;
+    });
+
+    var data = getComicMatchData();
+    var need = data.passCount || 5;
+
+    if (choice === round.correct) {
+      btn.classList.add("correct");
+      comicCorrect += 1;
+      updateComicProgress();
+      if (el.comicFeedback) el.comicFeedback.textContent = "答对啦！❤️";
+
+      setTimeout(function () {
+        if (comicCorrect >= need) {
+          if (activeStation) markCompleted(activeStation.id);
+          closeOverlay("comicmatch");
+          advanceToNextStation();
+          return;
+        }
+        comicIndex += 1;
+        renderComicRound();
+      }, 650);
+    } else {
+      btn.classList.add("wrong");
+      if (el.comicFeedback) {
+        el.comicFeedback.textContent = round.wrongHint || "再看看画面细节～";
+      }
+      setTimeout(function () {
+        buttons.forEach(function (b) {
+          b.disabled = false;
+          b.classList.remove("wrong");
+        });
+        comicBusy = false;
+        if (el.comicFeedback) el.comicFeedback.textContent = "";
+      }, 1100);
+    }
   }
 
   function renderQuestion() {

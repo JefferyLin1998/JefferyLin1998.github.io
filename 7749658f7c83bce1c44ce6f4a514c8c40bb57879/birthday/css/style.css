@@ -1240,6 +1240,367 @@ h2 {
   max-width: 260px;
 }
 
+/* ── 漫画地址匹配（云南） ── */
+#overlay-comicmatch {
+  --comic-ink: #121212;
+  --comic-paper: #f4efe4;
+  --comic-accent: #e53935;
+  --comic-sky: #2b6cb0;
+  background: #ebe4d4;
+  overflow-x: hidden;
+}
+
+#overlay-comicmatch .comic-page {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      transparent 0 14px,
+      rgba(0, 0, 0, 0.035) 14px 15px
+    ),
+    radial-gradient(circle at 12% 18%, rgba(229, 57, 53, 0.08), transparent 28%),
+    radial-gradient(circle at 88% 72%, rgba(43, 108, 176, 0.1), transparent 32%),
+    linear-gradient(180deg, #f7f1e6 0%, #ebe4d4 55%, #e2d8c4 100%);
+}
+
+#overlay-comicmatch .comic-page::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 8deg, rgba(0, 0, 0, 0.04) 8deg 9deg);
+  opacity: 0.45;
+  mask-image: radial-gradient(circle at 70% 20%, #000 0%, transparent 55%);
+}
+
+#overlay-comicmatch .comic-topbar {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border-bottom: 3px solid var(--comic-ink);
+}
+
+#overlay-comicmatch .comic-back {
+  border: 2.5px solid var(--comic-ink) !important;
+  background: #fffef8 !important;
+  color: var(--comic-ink) !important;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 var(--comic-ink);
+  border-radius: 0 !important;
+}
+
+#overlay-comicmatch .comic-badge {
+  border: 2.5px solid var(--comic-ink);
+  background: #ffe082;
+  color: var(--comic-ink);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--comic-ink);
+  font-family: "Impact", "Arial Black", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.comic-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 24px;
+}
+
+.comic-intro {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #4a4338;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.comic-manga-title {
+  align-self: center;
+  padding: 6px 16px;
+  border: 3px solid var(--comic-ink);
+  background: var(--comic-accent);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  box-shadow: 4px 4px 0 var(--comic-ink);
+  transform: rotate(-1.5deg);
+  font-family: "Impact", "Arial Black", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.comic-panel {
+  position: relative;
+  background: var(--comic-ink);
+  border: 5px solid var(--comic-ink);
+  box-shadow:
+    0 0 0 4px var(--comic-paper),
+    8px 10px 0 rgba(0, 0, 0, 0.55);
+  transform: rotate(-0.8deg);
+  margin: 4px 2px 8px;
+}
+
+.comic-caption {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  max-width: 72%;
+  padding: 6px 12px 7px;
+  background: #fffef8;
+  border: 3px solid var(--comic-ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--comic-ink);
+  box-shadow: 3px 3px 0 var(--comic-ink);
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+}
+
+.comic-sfx {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 5;
+  font-family: "Impact", "Arial Black", "PingFang SC", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #fff;
+  -webkit-text-stroke: 2px var(--comic-ink);
+  text-shadow:
+    3px 3px 0 var(--comic-accent),
+    -1px 0 var(--comic-ink),
+    0 1px var(--comic-ink);
+  transform: rotate(12deg);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  animation: comic-sfx-pop 0.55s ease-out both;
+}
+
+@keyframes comic-sfx-pop {
+  from {
+    opacity: 0;
+    transform: rotate(12deg) scale(1.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(12deg) scale(1);
+  }
+}
+
+.comic-frame {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+  aspect-ratio: 4 / 5;
+  max-height: min(50vh, 400px);
+}
+
+.comic-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comic-image-src {
+  display: none;
+}
+
+.comic-speedlines {
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.22;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg 6deg,
+    rgba(255, 255, 255, 0.55) 6deg 7deg
+  );
+  mix-blend-mode: soft-light;
+  animation: comic-lines-spin 18s linear infinite;
+}
+
+@keyframes comic-lines-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.comic-halftone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background-image:
+    radial-gradient(circle, rgba(0, 0, 0, 0.45) 0.7px, transparent 0.85px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 0.45px, transparent 0.65px);
+  background-size: 4px 4px, 7px 7px;
+  background-position: 0 0, 2px 3px;
+  mix-blend-mode: multiply;
+  opacity: 0.42;
+}
+
+.comic-ink-edge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.75),
+    inset 0 0 55px rgba(0, 0, 0, 0.35);
+}
+
+.comic-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--comic-ink);
+  background: #ffe082;
+  z-index: 6;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.comic-corner-tl {
+  top: -8px;
+  left: -8px;
+}
+
+.comic-corner-br {
+  right: -8px;
+  bottom: -8px;
+}
+
+.comic-bubble {
+  position: relative;
+  align-self: center;
+  max-width: 92%;
+  margin-top: 2px;
+  padding: 14px 18px 16px;
+  background: #fffef8;
+  border: 3.5px solid var(--comic-ink);
+  border-radius: 22px 22px 22px 6px;
+  box-shadow: 5px 5px 0 var(--comic-ink);
+  animation: comic-bubble-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.comic-bubble::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  bottom: -14px;
+  width: 18px;
+  height: 18px;
+  background: #fffef8;
+  border-right: 3.5px solid var(--comic-ink);
+  border-bottom: 3.5px solid var(--comic-ink);
+  transform: rotate(45deg);
+}
+
+@keyframes comic-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.comic-prompt {
+  text-align: center;
+  font-size: 1.12rem;
+  font-weight: 900;
+  color: var(--comic-ink);
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  font-family: "Impact", "Arial Black", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.comic-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comic-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 3px solid var(--comic-ink) !important;
+  border-radius: 0 !important;
+  background: #fffef8 !important;
+  font-weight: 700;
+  box-shadow: 4px 4px 0 var(--comic-ink);
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s;
+}
+
+.comic-option:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--comic-ink);
+}
+
+.comic-opt-mark {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--comic-ink);
+  color: #fffef8;
+  font-weight: 900;
+  font-size: 0.95rem;
+  font-family: "Impact", "Arial Black", sans-serif;
+}
+
+.comic-opt-text {
+  flex: 1;
+  text-align: left;
+  line-height: 1.35;
+}
+
+.comic-option.correct {
+  background: #c8e6c9 !important;
+  border-color: #1b5e20 !important;
+}
+
+.comic-option.wrong {
+  background: #ffcdd2 !important;
+  border-color: var(--comic-accent) !important;
+}
+
+.overlay-comicmatch .comic-feedback,
+.overlay-comicmatch .hint-msg {
+  text-align: center;
+  min-height: 1.5em;
+  font-weight: 800;
+  color: var(--comic-accent);
+}
+
+@media (max-width: 480px) {
+  .comic-panel {
+    transform: rotate(-0.3deg);
+  }
+
+  .comic-frame {
+    max-height: 44vh;
+  }
+
+  .comic-sfx {
+    font-size: 1.1rem;
+  }
+}
+
 /* ── 设计婚戒（三亚） ── */
 #overlay-ringdesign {
   background: linear-gradient(180deg, #e3f2fd 0%, #fce4ec 100%);
