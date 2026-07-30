@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "birthday-gift-progress-v7";
+  var STORAGE_KEY = "birthday-gift-progress-v9";
 
   var content = null;
   var stationIndex = 0;
@@ -23,6 +23,7 @@
   var comicIndex = 0;
   var comicCorrect = 0;
   var comicBusy = false;
+  var comicShowIntroOnce = false;
 
   var el = {};
 
@@ -84,18 +85,16 @@
     el.silSky = $("sil-sky");
     el.silCelestial = $("sil-celestial");
     el.silStageBadge = $("silhouette-stage");
-    el.ringPreviewCanvas = $("ring-preview-canvas");
-    el.ringDragHint = $("ring-drag-hint");
     el.ringStepPanel = $("ring-step-panel");
     el.ringStepLabel = $("ring-step-label");
-    el.ringSparkles = $("ring-sparkles");
     el.comicIntro = $("comic-intro");
-    el.comicCaption = $("comic-caption");
     el.comicImage = $("comic-image");
-    el.comicCanvas = $("comic-canvas");
     el.comicOptions = $("comic-options");
     el.comicFeedback = $("comic-feedback");
     el.comicProgress = $("comic-progress");
+    el.comicGuide = $("sx-guide");
+    el.comicGuideName = $("comic-guide-name");
+    el.comicGuideAvatar = $("comic-guide-avatar");
   }
 
   function loadContent() {
@@ -242,7 +241,7 @@
 
   function buildRailMap() {
     var stations = content.stations;
-    var minWidth = Math.max(320, stations.length * 58 + 48);
+    var minWidth = Math.max(340, stations.length * 64 + 56);
     el.railMap.style.minWidth = minWidth + "px";
 
     el.stationsContainer.innerHTML = "";
@@ -319,12 +318,12 @@
     var dotEl = activeNode.querySelector(".station-dot");
     var dotRect = dotEl.getBoundingClientRect();
     var count = content.stations.length;
-    var trainW = el.train.offsetWidth || 72;
+    var trainW = el.train.offsetWidth || 88;
 
     var left = dotRect.left - mapRect.left + dotRect.width / 2 - trainW / 2;
     var trackEl = el.railMap.querySelector(".hsr-route-track");
     var trackRect = trackEl ? trackEl.getBoundingClientRect() : mapRect;
-    var top = trackRect.top - mapRect.top + trackRect.height / 2 - 18;
+    var top = trackRect.top - mapRect.top + trackRect.height / 2 - 28;
 
     el.train.classList.toggle("no-transition", !animate);
     el.train.style.left = left + "px";
@@ -460,6 +459,7 @@
 
   function openOverlay(type, station) {
     closeAllOverlays();
+    if (station) activeStation = station;
     var overlay = $("overlay-" + type);
     if (!overlay) return;
     overlay.hidden = false;
@@ -470,7 +470,9 @@
     }
 
     if (type === "puzzle" && station) {
-      $("puzzle-title").textContent = station.icon + " " + station.city + "站 · 拼图";
+      var puzzleData = getPuzzleData();
+      $("puzzle-title").textContent =
+        puzzleData.title || station.icon + " " + station.city + "站 · 拼图";
       startPuzzle();
     }
 
@@ -527,12 +529,8 @@
     if (overlay) overlay.hidden = true;
     activeStation = null;
     if (type === "ringdesign") {
-      if (ringRafId) {
-        cancelAnimationFrame(ringRafId);
-        ringRafId = null;
-      }
-      ringDragging = false;
-      if (el.ringDragHint) el.ringDragHint.classList.remove("is-hidden");
+      var resEl = $("ring-result-content");
+      if (resEl) resEl.remove();
     }
     if (!document.querySelector(".project-overlay:not([hidden])")) {
       document.body.classList.remove("overlay-open");
@@ -1301,390 +1299,214 @@
     }
   }
 
-  /* ── 三亚站：设计婚戒 ── */
-  var ringStep = "material";
-  var ringChoices = { material: null, stone: null, setting: null, engraving: "" };
+  /* ── 三亚站：戒指工坊（抽象） ── */
+  var ringStep = "concept";
+  var ringChoices = { concept: null, metal: null, engraving: "" };
+  var RING_STEP_ORDER = ["concept", "metal", "engraving", "done"];
 
   function getRingData() {
-    return content.sanyaRing || { materials: [], stones: [], settings: [] };
+    return content.sanyaRing || { concepts: [], metals: [] };
   }
 
-  var RING_STEP_ORDER = ["material", "stone", "setting", "engraving", "done"];
-
-  /* ── 3D 戒指渲染（canvas） ── */
-  var ringViewAngle = 0;
-  var ringTilt = -0.35;
-  var ringAutoSpin = true;
-  var ringDragging = false;
-  var ringLastX = 0;
-  var ringLastY = 0;
-  var ringVel = 0.4;
-  var ringRafId = null;
-
-  function ringCurrentConfig() {
+  function getSelectedRingConcept() {
     var data = getRingData();
-    var m = (data.materials || []).find(function (x) { return x.id === ringChoices.material; }) || data.materials[0] || { color: "#e8eaed", shine: "#ffffff" };
-    var s = (data.stones || []).find(function (x) { return x.id === ringChoices.stone; }) || { color: null, sparkle: false };
-    return {
-      bandColor: m.color || "#e8eaed",
-      shineColor: m.shine || "#ffffff",
-      stoneColor: s.color,
-      sparkle: !!s.sparkle,
-      setting: ringChoices.setting
-    };
+    return (data.concepts || []).find(function (c) {
+      return c.id === ringChoices.concept;
+    }) || null;
   }
 
-  function darken(hex, amt) {
-    var c = hexToRgb(hex);
-    if (!c) return hex;
-    return "rgb(" + Math.round(c.r * (1 - amt)) + "," + Math.round(c.g * (1 - amt)) + "," + Math.round(c.b * (1 - amt)) + ")";
+  function getSelectedRingMetal() {
+    var data = getRingData();
+    return (data.metals || []).find(function (m) {
+      return m.id === ringChoices.metal;
+    }) || null;
   }
 
-  function lighten(hex, amt) {
-    var c = hexToRgb(hex);
-    if (!c) return hex;
-    return "rgb(" + Math.round(c.r + (255 - c.r) * amt) + "," + Math.round(c.g + (255 - c.g) * amt) + "," + Math.round(c.b + (255 - c.b) * amt) + ")";
-  }
+  function ringSvgMarkup(conceptId, metal) {
+    var color = (metal && metal.color) || "#d8dde3";
+    var accent = (metal && metal.accent) || "#f5f7fa";
+    var cid = conceptId || "solitaire";
 
-  function hexToRgb(hex) {
-    var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
-    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
-  }
-
-  function drawRing3D() {
-    var canvas = el.ringPreviewCanvas;
-    if (!canvas) return;
-    var ctx = canvas.getContext("2d");
-    var W = canvas.width;
-    var H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    var cfg = ringCurrentConfig();
-    var cx = W / 2;
-    var cy = H / 2 + 30;
-    var R = 150;
-    var tube = 26;
-
-    var cosT = Math.cos(ringTilt);
-    var sinT = Math.sin(ringTilt);
-    var cosA = Math.cos(ringViewAngle);
-    var sinA = Math.sin(ringViewAngle);
-
-    var pts = [];
-    var segs = 72;
-    var tubeSegs = 18;
-    for (var i = 0; i < segs; i++) {
-      var a = (Math.PI * 2 * i) / segs;
-      var ringX = R * Math.cos(a);
-      var ringZ = R * Math.sin(a);
-      var row = [];
-      for (var j = 0; j <= tubeSegs; j++) {
-        var tb = (Math.PI * 2 * j) / tubeSegs;
-        var nx = Math.cos(tb);
-        var ny = Math.sin(tb);
-        var px = ringX + nx * tube;
-        var py = ny * tube;
-        var pz = ringZ;
-        var x1 = px * cosA + pz * sinA;
-        var z1 = -px * sinA + pz * cosA;
-        var y2 = py * cosT - z1 * sinT;
-        var z2 = py * sinT + z1 * cosT;
-        row.push({ x: cx + x1, y: cy + y2, z: z2, nx: nx, ny: ny, ringA: a });
-      }
-      pts.push(row);
+    if (cid === "honeycomb") {
+      return (
+        '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
+        '<ellipse cx="120" cy="108" rx="78" ry="28" fill="none" stroke="' + color + '" stroke-width="16"/>' +
+        '<path d="M78 92 L92 84 L106 92 L106 108 L92 116 L78 108 Z" fill="' + accent + '" stroke="' + color + '" stroke-width="2"/>' +
+        '<path d="M106 92 L120 84 L134 92 L134 108 L120 116 L106 108 Z" fill="' + color + '"/>' +
+        '<path d="M134 92 L148 84 L162 92 L162 108 L148 116 L134 108 Z" fill="' + accent + '" stroke="' + color + '" stroke-width="2"/>' +
+        '<circle cx="120" cy="68" r="10" fill="#fff" stroke="' + color + '" stroke-width="2"/>' +
+        "</svg>"
+      );
     }
 
-    var faces = [];
-    for (var ii = 0; ii < segs; ii++) {
-      for (var jj = 0; jj < tubeSegs; jj++) {
-        var p00 = pts[ii][jj];
-        var p01 = pts[ii][jj + 1];
-        var p10 = pts[(ii + 1) % segs][jj];
-        var p11 = pts[(ii + 1) % segs][jj + 1];
-        var avgZ = (p00.z + p01.z + p10.z + p11.z) / 4;
-
-        var upX = Math.cos(p00.ringA);
-        var upZ = Math.sin(p00.ringA);
-        var ux1 = upX * cosA + upZ * sinA;
-        var uz1 = -upX * sinA + upZ * cosA;
-        var ny2 = p00.ny * cosT - uz1 * sinT;
-        var nz2 = p00.ny * sinT + uz1 * cosT;
-        var light = Math.max(0.15, -nz2 * 0.7 + ny2 * 0.35 + 0.4);
-
-        faces.push({ pts: [p00, p01, p11, p10], z: avgZ, light: light, type: "band" });
-      }
+    if (cid === "link") {
+      return (
+        '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
+        '<rect x="42" y="96" width="156" height="18" rx="4" fill="' + color + '"/>' +
+        '<path d="M104 96 L120 78 L136 96" fill="none" stroke="' + color + '" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<circle cx="112" cy="88" r="3" fill="#fff"/>' +
+        '<circle cx="120" cy="84" r="3" fill="#fff"/>' +
+        '<circle cx="128" cy="88" r="3" fill="#fff"/>' +
+        '<ellipse cx="120" cy="105" rx="70" ry="8" fill="' + accent + '" opacity="0.55"/>' +
+        "</svg>"
+      );
     }
 
-    var stoneItem = null;
-    if (cfg.stoneColor) {
-      var topTheta = Math.PI / 2;
-      var ringTopX = R * Math.cos(topTheta);
-      var ringTopZ = R * Math.sin(topTheta);
-      var rx1 = ringTopX * cosA + ringTopZ * sinA;
-      var rz1 = -ringTopX * sinA + ringTopZ * cosA;
-      var stoneScreenX = cx + rx1;
-      var stoneScreenY = cy + (-rz1 * sinT);
-      var stoneDepth = rz1 * cosT;
-      var stoneScale = 1 + stoneDepth / 600;
-      stoneItem = {
-        type: "stone",
-        z: stoneDepth,
-        sx: stoneScreenX,
-        sy: stoneScreenY,
-        scale: stoneScale
-      };
-      faces.push(stoneItem);
+    return (
+      '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="120" cy="112" rx="72" ry="24" fill="none" stroke="' + color + '" stroke-width="14"/>' +
+      '<path d="M120 58 L128 74 L146 76 L132 88 L136 106 L120 96 L104 106 L108 88 L94 76 L112 74 Z" fill="#fff" stroke="' + color + '" stroke-width="2"/>' +
+      "</svg>"
+    );
+  }
+
+  function tinyConceptIcon(conceptId) {
+    var stroke = "#2e7d32";
+    if (conceptId === "honeycomb") {
+      return (
+        '<svg viewBox="0 0 36 36"><path d="M10 14 L18 9 L26 14 V24 L18 29 L10 24 Z" fill="none" stroke="' +
+        stroke +
+        '" stroke-width="2"/></svg>'
+      );
     }
+    if (conceptId === "link") {
+      return (
+        '<svg viewBox="0 0 36 36"><path d="M10 20 H26 M14 20 L18 14 L22 20" fill="none" stroke="' +
+        stroke +
+        '" stroke-width="2.2" stroke-linecap="round"/></svg>'
+      );
+    }
+    return (
+      '<svg viewBox="0 0 36 36"><circle cx="18" cy="14" r="5" fill="none" stroke="' +
+      stroke +
+      '" stroke-width="2"/><ellipse cx="18" cy="24" rx="10" ry="4" fill="none" stroke="' +
+      stroke +
+      '" stroke-width="2"/></svg>'
+    );
+  }
 
-    faces.sort(function (a, b) { return a.z - b.z; });
+  function updateRingPreview() {
+    var box = $("ring-preview-svg");
+    var caption = $("ring-preview-caption");
+    var concept = getSelectedRingConcept();
+    var metal = getSelectedRingMetal();
+    if (!box) return;
 
-    var bandLight = lighten(cfg.bandColor, 0.55);
-    var bandDark = darken(cfg.bandColor, 0.45);
+    box.innerHTML = ringSvgMarkup(concept ? concept.id : "solitaire", metal);
 
-    faces.forEach(function (f) {
-      if (f.type === "stone") {
-        drawStone3D(ctx, f.sx, f.sy, 30 * f.scale, cfg, ringViewAngle);
+    if (caption) {
+      if (concept && metal) {
+        caption.textContent = concept.name + " · " + metal.name;
+      } else if (concept) {
+        caption.textContent = concept.name + " · 再选金属";
       } else {
-        var col = mixColor(bandDark, bandLight, f.light);
-        ctx.beginPath();
-        ctx.moveTo(f.pts[0].x, f.pts[0].y);
-        for (var k = 1; k < f.pts.length; k++) ctx.lineTo(f.pts[k].x, f.pts[k].y);
-        ctx.closePath();
-        ctx.fillStyle = col;
-        ctx.fill();
+        caption.textContent = "选择理念与金属";
       }
+    }
+  }
+
+  function buildRingConceptOptions() {
+    var data = getRingData();
+    var box = $("ring-concept-opts");
+    if (!box) return;
+    box.innerHTML = "";
+
+    (data.concepts || []).forEach(function (c) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ring-choice" + (ringChoices.concept === c.id ? " is-selected" : "");
+      btn.innerHTML =
+        '<span class="ring-choice-icon">' +
+        tinyConceptIcon(c.id) +
+        "</span>" +
+        '<span class="ring-choice-text"><strong>' +
+        c.name +
+        "</strong><span>" +
+        (c.desc || c.tagline || "") +
+        "</span></span>";
+      btn.addEventListener("click", function () {
+        ringChoices.concept = c.id;
+        buildRingConceptOptions();
+        updateRingPreview();
+      });
+      box.appendChild(btn);
     });
   }
 
-  function mixColor(c1, c2, t) {
-    var a = parseColor(c1);
-    var b = parseColor(c2);
-    if (!a || !b) return c1;
-    return "rgb(" + Math.round(a.r + (b.r - a.r) * t) + "," + Math.round(a.g + (b.g - a.g) * t) + "," + Math.round(a.b + (b.b - a.b) * t) + ")";
-  }
-
-  function parseColor(c) {
-    if (!c) return null;
-    var h = hexToRgb(c);
-    if (h) return h;
-    var m = /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c);
-    return m ? { r: +m[1], g: +m[2], b: +m[3] } : null;
-  }
-
-  function drawStone3D(ctx, cx, cy, r, cfg) {
-    ctx.save();
-
-    var g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.1, cx, cy, r);
-    g.addColorStop(0, "#ffffff");
-    g.addColorStop(0.35, lighten(cfg.stoneColor, 0.3));
-    g.addColorStop(0.7, cfg.stoneColor);
-    g.addColorStop(1, darken(cfg.stoneColor, 0.4));
-
-    if (cfg.setting === "bezel") {
-      ctx.beginPath();
-      ctx.arc(cx, cy, r + 6, 0, Math.PI * 2);
-      ctx.fillStyle = cfg.bandColor;
-      ctx.fill();
-    } else if (cfg.setting === "prong") {
-      ctx.strokeStyle = cfg.bandColor;
-      ctx.lineWidth = 5;
-      ctx.lineCap = "round";
-      var prongs = 4;
-      for (var p = 0; p < prongs; p++) {
-        var pa = (Math.PI * 2 * p) / prongs + Math.PI / 4;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(pa) * (r - 4), cy + Math.sin(pa) * (r - 4));
-        ctx.lineTo(cx + Math.cos(pa) * (r + 6), cy + Math.sin(pa) * (r + 6));
-        ctx.stroke();
-      }
-    }
-
-    var facets = 8;
-    ctx.beginPath();
-    for (var i = 0; i <= facets; i++) {
-      var fa = (Math.PI * 2 * i) / facets;
-      var fx = cx + Math.cos(fa) * r;
-      var fy = cy + Math.sin(fa) * r;
-      if (i === 0) ctx.moveTo(fx, fy); else ctx.lineTo(fx, fy);
-    }
-    ctx.fillStyle = g;
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - r);
-    for (var k = 0; k < facets; k++) {
-      var ka = (Math.PI * 2 * k) / facets - Math.PI / 2;
-      ctx.lineTo(cx + Math.cos(ka) * r, cy + Math.sin(ka) * r);
-      ctx.lineTo(cx, cy);
-    }
-    ctx.closePath();
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.beginPath();
-    ctx.arc(cx - r * 0.3, cy - r * 0.35, r * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (cfg.setting === "pave") {
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      for (var pv = 0; pv < 8; pv++) {
-        var pva = (Math.PI * 2 * pv) / 8;
-        ctx.beginPath();
-        ctx.arc(cx + Math.cos(pva) * (r + 12), cy + Math.sin(pva) * (r + 12), 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    ctx.restore();
-  }
-
-  function ringAnimLoop() {
-    if (ringAutoSpin && !ringDragging) {
-      ringViewAngle += 0.006;
-    }
-    drawRing3D();
-    ringRafId = requestAnimationFrame(ringAnimLoop);
-  }
-
-  function bindRingDrag() {
-    var canvas = el.ringPreviewCanvas;
-    if (!canvas || canvas.dataset.bound === "1") return;
-    canvas.dataset.bound = "1";
-
-    function start(x, y) {
-      ringDragging = true;
-      ringAutoSpin = false;
-      ringLastX = x;
-      ringLastY = y;
-      if (el.ringDragHint) el.ringDragHint.classList.add("is-hidden");
-    }
-    function move(x, y) {
-      if (!ringDragging) return;
-      var dx = x - ringLastX;
-      var dy = y - ringLastY;
-      ringViewAngle += dx * 0.012;
-      ringTilt = Math.max(-1.2, Math.min(1.2, ringTilt + dy * 0.008));
-      ringLastX = x;
-      ringLastY = y;
-    }
-    function end() {
-      ringDragging = false;
-    }
-
-    canvas.addEventListener("mousedown", function (e) { start(e.clientX, e.clientY); });
-    window.addEventListener("mousemove", function (e) { move(e.clientX, e.clientY); });
-    window.addEventListener("mouseup", end);
-
-    canvas.addEventListener("touchstart", function (e) {
-      if (e.touches[0]) { e.preventDefault(); start(e.touches[0].clientX, e.touches[0].clientY); }
-    }, { passive: false });
-    canvas.addEventListener("touchmove", function (e) {
-      if (e.touches[0]) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); }
-    }, { passive: false });
-    canvas.addEventListener("touchend", end);
-  }
-
-  function renderRingPreview() {
-    if (!el.ringPreviewCanvas) return;
-    if (!ringRafId) {
-      bindRingDrag();
-      ringAnimLoop();
-    } else {
-      drawRing3D();
-    }
-
-    if (el.ringSparkles) {
-      var s = (getRingData().stones || []).find(function (x) { return x.id === ringChoices.stone; });
-      el.ringSparkles.classList.toggle("active", !!(s && s.sparkle));
-    }
-  }
-
-  function buildRingOptions(step) {
+  function buildRingMetalOptions() {
     var data = getRingData();
-    var container;
-    var items;
-    var valueKey = step;
+    var box = $("ring-metal-opts");
+    if (!box) return;
+    box.innerHTML = "";
 
-    if (step === "material") {
-      container = $("ring-material-opts");
-      items = data.materials || [];
-    } else if (step === "stone") {
-      container = $("ring-stone-opts");
-      items = data.stones || [];
-    } else if (step === "setting") {
-      container = $("ring-setting-opts");
-      items = data.settings || [];
-    } else {
-      return;
-    }
-
-    container.innerHTML = "";
-    items.forEach(function (item) {
+    (data.metals || []).forEach(function (m) {
       var btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "ring-option";
-      btn.dataset.value = item.id;
-
-      var swatch = "";
-      if (item.color) {
-        swatch = '<span class="ring-swatch" style="background:' + item.color + '"></span>';
-      } else if (step === "setting") {
-        swatch = '<span class="ring-swatch ring-swatch-setting">' + item.name.charAt(0) + '</span>';
-      }
-
-      var label = '<span class="ring-option-label">' + item.name + '</span>';
-      var desc = item.desc ? '<span class="ring-option-desc">' + item.desc + '</span>' : "";
-
-      btn.innerHTML = swatch + '<span class="ring-option-text">' + label + desc + '</span>';
-      btn.classList.toggle("selected", ringChoices[valueKey] === item.id);
-
+      btn.className = "ring-choice" + (ringChoices.metal === m.id ? " is-selected" : "");
+      btn.innerHTML =
+        '<span class="ring-choice-swatch" style="background:' +
+        m.color +
+        '"></span>' +
+        '<span class="ring-choice-text"><strong>' +
+        m.name +
+        "</strong><span>抽象预览会换成这个金属色</span></span>";
       btn.addEventListener("click", function () {
-        ringChoices[valueKey] = item.id;
-        Array.prototype.forEach.call(container.children, function (c) {
-          c.classList.toggle("selected", c.dataset.value === item.id);
-        });
-        renderRingPreview();
+        ringChoices.metal = m.id;
+        buildRingMetalOptions();
+        updateRingPreview();
       });
-      container.appendChild(btn);
+      box.appendChild(btn);
     });
   }
 
   function showRingStep(step) {
     ringStep = step;
-    el.ringStepPanel.querySelectorAll(".ring-step").forEach(function (s) {
-      s.classList.toggle("active", s.dataset.step === step);
-    });
+    var data = getRingData();
+    var labels = data.steps || {};
 
-    var labels = (getRingData().steps) || {};
-    var stepLabel = step === "done" ? "完成" : ("第 " + (RING_STEP_ORDER.indexOf(step) + 1) + " 步");
-    if (el.ringStepLabel) el.ringStepLabel.textContent = labels[step] || stepLabel;
+    if (el.ringStepPanel) {
+      el.ringStepPanel.querySelectorAll(".ring-step").forEach(function (s) {
+        s.classList.toggle("active", s.getAttribute("data-step") === step);
+      });
+    }
 
-    if (step === "material") $("ring-material-title").textContent = labels.material || "选材质";
-    if (step === "stone") $("ring-stone-title").textContent = labels.stone || "选主石";
-    if (step === "setting") $("ring-setting-title").textContent = labels.setting || "选镶嵌";
-    if (step === "engraving") $("ring-engraving-title").textContent = labels.engraving || "刻字";
+    if (el.ringStepLabel) el.ringStepLabel.textContent = labels[step] || step;
 
     if (step === "done") {
-      var teases = getRingData().teases || ["不错！"];
-      $("ring-tease").textContent = teases[Math.floor(Math.random() * teases.length)];
-      $("ring-finalize-btn").textContent = getRingData().finalCta || "生成设计图";
+      var teases = data.teases || ["不错。"];
+      var concept = getSelectedRingConcept();
+      var metal = getSelectedRingMetal();
+      var label =
+        (concept ? concept.name : "？") + " · " + (metal ? metal.name : "？");
+      $("ring-tease").textContent =
+        teases[Math.floor(Math.random() * teases.length)] + " 「" + label + "」";
+      $("ring-finalize-btn").textContent = data.finalCta || "揭晓婚戒";
     }
 
     var idx = RING_STEP_ORDER.indexOf(step);
-    $("ring-prev-btn").disabled = idx === 0;
+    $("ring-prev-btn").disabled = idx <= 0;
     $("ring-next-btn").style.display = step === "done" ? "none" : "";
-    $("ring-next-btn").disabled = false;
+  }
+
+  function ringCanAdvance() {
+    if (ringStep === "concept") return !!ringChoices.concept;
+    if (ringStep === "metal") return !!ringChoices.metal;
+    return true;
   }
 
   function ringNext() {
-    var idx = RING_STEP_ORDER.indexOf(ringStep);
-    if (idx < RING_STEP_ORDER.length - 1) {
-      showRingStep(RING_STEP_ORDER[idx + 1]);
-    } else {
-      finalizeRing();
+    if (ringStep === "engraving") {
+      ringChoices.engraving = ($("ring-engraving-input").value || "").trim();
     }
+    if (!ringCanAdvance()) {
+      if (el.ringStepLabel) {
+        el.ringStepLabel.textContent =
+          ringStep === "concept" ? "请先选理念" : "请先选金属";
+      }
+      return;
+    }
+    var idx = RING_STEP_ORDER.indexOf(ringStep);
+    if (idx < RING_STEP_ORDER.length - 1) showRingStep(RING_STEP_ORDER[idx + 1]);
   }
 
   function ringPrev() {
@@ -1694,67 +1516,60 @@
 
   function finalizeRing() {
     var data = getRingData();
-    var materials = data.materials || [];
-    var stones = data.stones || [];
-    var settings = data.settings || [];
-
-    var myM = materials.find(function (x) { return x.id === ringChoices.material; }) || materials[0];
-    var myS = stones.find(function (x) { return x.id === ringChoices.stone; }) || stones[0];
-    var mySet = settings.find(function (x) { return x.id === ringChoices.setting; }) || settings[0];
+    var concept = getSelectedRingConcept();
+    var metal = getSelectedRingMetal();
     var engraving = ringChoices.engraving || "（无）";
-
-    var myDesc = (myM ? myM.name : "？") + " · " + (myS ? myS.name : "？") + " · " + (mySet ? mySet.name : "？");
+    var myDesc =
+      (concept ? concept.name : "？") + " · " + (metal ? metal.name : "？");
 
     closeOverlay("ringdesign");
     setTimeout(function () {
       showRingResult(data, myDesc, engraving);
-    }, 250);
+    }, 200);
   }
 
   function showRingResult(data, myDesc, engraving) {
     var overlay = $("overlay-ringdesign");
     overlay.hidden = false;
     document.body.classList.add("overlay-open");
+    activeStation =
+      activeStation ||
+      content.stations.find(function (s) {
+        return s.type === "ringdesign";
+      });
 
     var real = data.realRing || { desc: "" };
-    var html = '';
+    var concept = getSelectedRingConcept();
+    var metal = getSelectedRingMetal();
+    var html = "";
     html += '<div class="ring-result-overlay" id="ring-result-content">';
     html += '  <div class="ring-result-card">';
-    html += '    <h2 class="ring-result-title">' + (data.compareTitle || "你的设计") + '</h2>';
+    html += '    <h2 class="ring-result-title">' + (data.compareTitle || "对比") + "</h2>";
     html += '    <div class="ring-result-row">';
     html += '      <div class="ring-result-col">';
-    html += '        <p class="ring-result-label">你设计的</p>';
-    html += '        <div class="ring-result-mini-svg" id="ring-result-mini"></div>';
-    html += '        <p class="ring-result-desc">' + myDesc + '</p>';
-    html += '        <p class="ring-result-engraving">内壁：「' + engraving + '」</p>';
-    html += '      </div>';
+    html += '        <p class="ring-result-label">你的设计</p>';
+    html +=
+      '        <div class="ring-result-mini-svg">' +
+      ringSvgMarkup(concept && concept.id, metal) +
+      "</div>";
+    html += '        <p class="ring-result-desc">' + myDesc + "</p>";
+    html += '        <p class="ring-result-engraving">内壁：「' + engraving + "」</p>";
+    html += "      </div>";
     html += '      <div class="ring-result-vs">VS</div>';
-    html += '      <div class="ring-result-col ring-result-real">';
-    html += '        <p class="ring-result-label">' + (real.label || "我们真实的") + '</p>';
+    html += '      <div class="ring-result-col">';
+    html += '        <p class="ring-result-label">' + (real.label || "真实婚戒") + "</p>";
     html += '        <div class="ring-result-real-icon">💍</div>';
-    html += '        <p class="ring-result-desc">' + (real.desc || "") + '</p>';
-    html += '      </div>';
-    html += '    </div>';
-    html += '    <p class="ring-result-vow">' + (data.finalVow || "") + '</p>';
-    html += '    <button type="button" class="btn-primary" id="ring-result-done">打卡这一站 ✓</button>';
-    html += '  </div>';
-    html += '</div>';
+    html += '        <p class="ring-result-desc">' + (real.desc || "") + "</p>";
+    html += "      </div>";
+    html += "    </div>";
+    html += '    <p class="ring-result-vow">' + (data.finalVow || "") + "</p>";
+    html +=
+      '    <button type="button" class="btn-primary ring-confirm-btn" id="ring-result-done">打卡这一站 ✓</button>';
+    html += "  </div></div>";
 
     var old = $("ring-result-content");
     if (old) old.remove();
-
-    var wrap = $("ring-design-wrap");
-    wrap.insertAdjacentHTML("beforebegin", html);
-
-    var mini = $("ring-result-mini");
-    if (mini && el.ringPreviewCanvas) {
-      var snap = document.createElement("img");
-      snap.src = el.ringPreviewCanvas.toDataURL("image/png");
-      snap.alt = "你设计的戒指";
-      snap.style.maxWidth = "120px";
-      snap.style.borderRadius = "10px";
-      mini.appendChild(snap);
-    }
+    $("ring-design-wrap").insertAdjacentHTML("beforebegin", html);
 
     $("ring-result-done").addEventListener("click", function () {
       var resEl = $("ring-result-content");
@@ -1767,33 +1582,33 @@
 
   function startRingDesign(station) {
     var data = getRingData();
-    ringStep = "material";
-    ringChoices = { material: null, stone: null, setting: null, engraving: "" };
+    ringStep = "concept";
+    ringChoices = {
+      concept: (data.concepts && data.concepts[0] && data.concepts[0].id) || null,
+      metal: (data.metals && data.metals[0] && data.metals[0].id) || null,
+      engraving: ""
+    };
 
     $("ring-intro").textContent = data.intro || "";
-    $("ring-material-hint").textContent = data.materialHint || "";
-    $("ring-stone-hint").textContent = data.stoneHint || "";
-    $("ring-setting-hint").textContent = data.settingHint || "";
+    $("ring-concept-hint").textContent = data.conceptHint || "";
+    $("ring-metal-hint").textContent = data.metalHint || "";
     $("ring-engraving-hint").textContent = data.engravingHint || "";
     var inp = $("ring-engraving-input");
     inp.placeholder = data.engravingPlaceholder || "";
     inp.value = "";
 
-    ringChoices.material = (data.materials && data.materials[0] && data.materials[0].id) || null;
-    ringChoices.stone = (data.stones && data.stones[0] && data.stones[0].id) || null;
-    ringChoices.setting = (data.settings && data.settings[0] && data.settings[0].id) || null;
+    var old = $("ring-result-content");
+    if (old) old.remove();
 
-    buildRingOptions("material");
-    buildRingOptions("stone");
-    buildRingOptions("setting");
-
-    renderRingPreview();
-    showRingStep("material");
+    buildRingConceptOptions();
+    buildRingMetalOptions();
+    updateRingPreview();
+    showRingStep("concept");
   }
 
-  /* ── 云南站：漫画地址匹配 ── */
+  /* ── 云南站：看图猜地点 ── */
   function getComicMatchData() {
-    return content.yunnanMatch || { title: "", intro: "", passCount: 5, rounds: [] };
+    return content.yunnanMatch || { title: "", intro: "", passCount: 6, rounds: [] };
   }
 
   function shuffleArray(arr) {
@@ -1809,170 +1624,57 @@
 
   function updateComicProgress() {
     var data = getComicMatchData();
-    var need = data.passCount || 5;
+    var need = data.passCount || 6;
     if (el.comicProgress) {
-      el.comicProgress.textContent = "CLEAR " + comicCorrect + "/" + need;
+      el.comicProgress.textContent = comicCorrect + " / " + need;
     }
   }
 
-  function posterizeChannel(v, levels) {
-    var step = 255 / (levels - 1);
-    return Math.round(Math.round(v / step) * step);
+  function setComicGuideLine(text, mood) {
+    if (el.comicIntro) el.comicIntro.textContent = text || "";
+    if (!el.comicGuide) return;
+    el.comicGuide.classList.remove("is-talk", "is-wrong");
+    if (mood === "correct") el.comicGuide.classList.add("is-talk");
+    if (mood === "wrong") el.comicGuide.classList.add("is-wrong");
   }
 
-  function isLowPowerDevice() {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return true;
-    }
-    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
-      return true;
-    }
-    return window.innerWidth < 700;
-  }
-
-  function getComicOutputSize() {
-    var cssW = Math.min(440, window.innerWidth - 32);
-    var dpr = Math.min(window.devicePixelRatio || 1, isLowPowerDevice() ? 1.25 : 1.75);
-    var outW = Math.max(280, Math.round(cssW * dpr));
-    outW = Math.min(outW, isLowPowerDevice() ? 420 : 560);
-    var outH = Math.round(outW * 1.25);
-    return { w: outW, h: outH };
-  }
-
-  var comicFilterCache = {};
-  var comicFilterToken = 0;
-
-  function applyComicFilter(img, token) {
-    var canvas = el.comicCanvas;
-    if (!canvas || !img || !img.naturalWidth) return;
-    if (token != null && token !== comicFilterToken) return;
-
-    var size = getComicOutputSize();
-    var outW = size.w;
-    var outH = size.h;
-    var lowPower = isLowPowerDevice();
-    var cacheKey = (img.src || "") + "|" + outW + "x" + outH + "|" + (lowPower ? "L" : "H");
-    if (comicFilterCache[cacheKey]) {
-      canvas.width = outW;
-      canvas.height = outH;
-      canvas.getContext("2d").putImageData(comicFilterCache[cacheKey], 0, 0);
-      return;
-    }
-
-    canvas.width = outW;
-    canvas.height = outH;
-
-    var ctx = canvas.getContext("2d", { willReadFrequently: true });
-    var srcW = img.naturalWidth;
-    var srcH = img.naturalHeight;
-    var scale = Math.max(outW / srcW, outH / srcH);
-    var drawW = srcW * scale;
-    var drawH = srcH * scale;
-    var dx = (outW - drawW) / 2;
-    var dy = (outH - drawH) / 2;
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, outW, outH);
-    ctx.drawImage(img, dx, dy, drawW, drawH);
-
-    var w = outW;
-    var h = outH;
-    var imageData = ctx.getImageData(0, 0, w, h);
-    var data = imageData.data;
-    var i;
-    var r;
-    var g;
-    var b;
-    var lum;
-
-    /* 轻量：只做对比度 + 色阶，手机跳过全图 Sobel */
-    for (i = 0; i < data.length; i += 4) {
-      r = data[i];
-      g = data[i + 1];
-      b = data[i + 2];
-      lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      lum = (lum - 128) * 1.35 + 128;
-
-      r = posterizeChannel((r - 128) * 1.28 + 128, 5);
-      g = posterizeChannel((g - 128) * 1.28 + 128, 5);
-      b = posterizeChannel((b - 128) * 1.28 + 128, 5);
-
-      if (lum < 75) {
-        r = (r * 0.5) | 0;
-        g = (g * 0.5) | 0;
-        b = (b * 0.5) | 0;
-      } else if (lum > 205) {
-        r = r + 28 > 255 ? 255 : r + 28;
-        g = g + 28 > 255 ? 255 : g + 28;
-        b = b + 28 > 255 ? 255 : b + 28;
-      }
-
-      data[i] = r < 0 ? 0 : r > 255 ? 255 : r;
-      data[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-      data[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
-    }
-
-    if (!lowPower) {
-      var gray = new Uint8Array(w * h);
-      for (i = 0; i < gray.length; i++) {
-        var p = i * 4;
-        gray[i] = (0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2]) | 0;
-      }
-      /* 降采样步进描边，减少手机/桌面开销 */
-      var step = 2;
-      for (var y = 1; y < h - 1; y += step) {
-        for (var x = 1; x < w - 1; x += step) {
-          var idx = y * w + x;
-          var gx = -gray[idx - 1] + gray[idx + 1];
-          var gy = -gray[idx - w] + gray[idx + w];
-          var mag = Math.abs(gx) + Math.abs(gy);
-          if (mag > 56) {
-            var px = idx * 4;
-            data[px] = 12;
-            data[px + 1] = 12;
-            data[px + 2] = 16;
-            if (x + 1 < w) {
-              data[px + 4] = 12;
-              data[px + 5] = 12;
-              data[px + 6] = 16;
-            }
-          }
-        }
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    try {
-      comicFilterCache[cacheKey] = ctx.getImageData(0, 0, w, h);
-    } catch (e) {
-      /* ignore quota */
-    }
+  function getComicGuideLines() {
+    var data = getComicMatchData();
+    return data.guideLines || {};
   }
 
   function loadComicPanel(src, altText) {
     if (!el.comicImage) return;
-    var token = ++comicFilterToken;
+    el.comicImage.classList.add("is-loading");
     el.comicImage.onload = function () {
-      if (token !== comicFilterToken) return;
-      /* 让 UI 先画出来，再做滤镜，避免卡住点击 */
-      setTimeout(function () {
-        applyComicFilter(el.comicImage, token);
-      }, 16);
+      el.comicImage.classList.remove("is-loading");
     };
     el.comicImage.onerror = function () {
-      if (!el.comicCanvas || token !== comicFilterToken) return;
-      var size = getComicOutputSize();
-      var ctx = el.comicCanvas.getContext("2d");
-      el.comicCanvas.width = size.w;
-      el.comicCanvas.height = size.h;
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(0, 0, size.w, size.h);
-      ctx.fillStyle = "#fff";
-      ctx.font = "16px sans-serif";
-      ctx.fillText("加载失败", size.w / 2 - 32, size.h / 2);
+      el.comicImage.classList.remove("is-loading");
+      el.comicImage.alt = "图片加载失败";
     };
-    el.comicImage.alt = altText || "蜜月漫画格";
+    el.comicImage.alt = altText || "旅途照片";
     el.comicImage.decoding = "async";
+    el.comicImage.loading = "eager";
+    if (el.comicImage.getAttribute("src") === src && el.comicImage.complete) {
+      el.comicImage.classList.remove("is-loading");
+      return;
+    }
     el.comicImage.src = src;
+  }
+
+  function restartComicMatch(message) {
+    var data = getComicMatchData();
+    var lines = getComicGuideLines();
+    comicBusy = true;
+    comicCorrect = 0;
+    comicIndex = 0;
+    comicQueue = shuffleArray(data.rounds || []);
+    updateComicProgress();
+    setComicGuideLine(message || lines.wrong || "答错了，从头再来～", "wrong");
+    setTimeout(function () {
+      renderComicRound();
+    }, 1100);
   }
 
   function startComicMatch(station) {
@@ -1980,11 +1682,17 @@
     comicBusy = false;
     comicCorrect = 0;
     comicIndex = 0;
+    comicShowIntroOnce = true;
     comicQueue = shuffleArray(data.rounds || []);
-    if (el.comicIntro) el.comicIntro.textContent = data.intro || "";
+
+    if (el.comicGuideName) {
+      el.comicGuideName.textContent = data.guideName || "铜脸向导";
+    }
+    if (el.comicGuideAvatar && data.guideAvatar) {
+      el.comicGuideAvatar.src = data.guideAvatar;
+    }
     updateComicProgress();
 
-    /* 预加载后续题图，减少翻题等待 */
     (data.rounds || []).forEach(function (round) {
       if (!round || !round.image) return;
       var pre = new Image();
@@ -1997,6 +1705,7 @@
 
   function renderComicRound() {
     var data = getComicMatchData();
+    var lines = getComicGuideLines();
     var round = comicQueue[comicIndex];
     if (!round) {
       comicQueue = shuffleArray(data.rounds || []);
@@ -2007,35 +1716,28 @@
 
     comicBusy = false;
     if (el.comicFeedback) el.comicFeedback.textContent = "";
-    if (el.comicCaption) {
-      el.comicCaption.textContent = round.comicTitle || ("第 " + (comicIndex + 1) + " 格");
-    }
 
-    var sfx = document.querySelector("#comic-panel .comic-sfx");
-    if (sfx) {
-      sfx.style.animation = "none";
-      void sfx.offsetWidth;
-      sfx.style.animation = "";
+    if (comicShowIntroOnce) {
+      comicShowIntroOnce = false;
+      setComicGuideLine(data.intro || lines.start || "", "idle");
+    } else {
+      setComicGuideLine(
+        lines.start || "瞪大眼睛看仔细——这张，汝可知何处？",
+        "idle"
+      );
     }
-    var bubble = $("comic-bubble");
-    if (bubble) {
-      bubble.style.animation = "none";
-      void bubble.offsetWidth;
-      bubble.style.animation = "";
-    }
-
-    loadComicPanel(round.image, round.comicTitle || "蜜月漫画格");
+    loadComicPanel(round.image, round.comicTitle || "旅途照片");
 
     var options = shuffleArray(round.options || []);
     el.comicOptions.innerHTML = "";
     options.forEach(function (opt, i) {
       var btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "option-btn comic-option";
+      btn.className = "option-btn photo-option";
       btn.innerHTML =
-        '<span class="comic-opt-mark">' +
+        '<span class="photo-opt-mark">' +
         String.fromCharCode(65 + i) +
-        '</span><span class="comic-opt-text">' +
+        '</span><span class="photo-opt-text">' +
         opt +
         "</span>";
       btn.addEventListener("click", function () {
@@ -2056,37 +1758,39 @@
     });
 
     var data = getComicMatchData();
-    var need = data.passCount || 5;
+    var lines = getComicGuideLines();
+    var need = data.passCount || 6;
 
     if (choice === round.correct) {
       btn.classList.add("correct");
       comicCorrect += 1;
       updateComicProgress();
-      if (el.comicFeedback) el.comicFeedback.textContent = "答对啦！❤️";
+      setComicGuideLine(lines.correct || "答对啦！", "correct");
 
       setTimeout(function () {
         if (comicCorrect >= need) {
-          if (activeStation) markCompleted(activeStation.id);
-          closeOverlay("comicmatch");
-          advanceToNextStation();
+          setComicGuideLine(lines.pass || "过关！", "correct");
+          var station = activeStation;
+          setTimeout(function () {
+            if (station && station.followUp === "puzzle") {
+              openOverlay("puzzle", station);
+              return;
+            }
+            if (station) markCompleted(station.id);
+            closeOverlay("comicmatch");
+            advanceToNextStation();
+          }, 700);
           return;
         }
         comicIndex += 1;
         renderComicRound();
-      }, 650);
+      }, 550);
     } else {
       btn.classList.add("wrong");
-      if (el.comicFeedback) {
-        el.comicFeedback.textContent = round.wrongHint || "再看看画面细节～";
-      }
-      setTimeout(function () {
-        buttons.forEach(function (b) {
-          b.disabled = false;
-          b.classList.remove("wrong");
-        });
-        comicBusy = false;
-        if (el.comicFeedback) el.comicFeedback.textContent = "";
-      }, 1100);
+      var hint = round.wrongHint
+        ? round.wrongHint + " " + (lines.wrong || "进度清零，重新开始～")
+        : lines.wrong || "答错了，进度清零，重新开始～";
+      restartComicMatch(hint);
     }
   }
 
@@ -2325,7 +2029,6 @@
     $("ring-next-btn").addEventListener("click", ringNext);
     $("ring-engraving-confirm").addEventListener("click", function () {
       ringChoices.engraving = $("ring-engraving-input").value.trim();
-      renderRingPreview();
       ringNext();
     });
     $("ring-finalize-btn").addEventListener("click", finalizeRing);

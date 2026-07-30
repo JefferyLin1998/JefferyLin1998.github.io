@@ -35,26 +35,42 @@
 
       <div class="rail-map-wrap" id="rail-map-wrap">
         <div class="rail-map hsr-route-panel" id="rail-map">
+          <div class="hsr-sky" aria-hidden="true"></div>
+          <div class="hsr-hills" aria-hidden="true"></div>
+          <div class="hsr-ballast" aria-hidden="true"></div>
           <div class="hsr-route-track" aria-hidden="true">
-            <div class="rail-track-base"></div>
-            <div class="rail-track-dash"></div>
+            <div class="rail-sleepers"></div>
+            <div class="rail-steel rail-steel-a"></div>
+            <div class="rail-steel rail-steel-b"></div>
+            <div class="rail-center-glow"></div>
             <div class="rail-line-fill" id="rail-line-fill"></div>
+            <div class="rail-poles"></div>
           </div>
           <div class="hsr-train-wrap" id="rail-train">
             <div class="hsr-speed-lines" aria-hidden="true">
               <span></span><span></span><span></span>
             </div>
+            <div class="hsr-pantograph" aria-hidden="true"></div>
             <div class="hsr-train-body">
-              <div class="hsr-train-nose"></div>
+              <div class="hsr-train-nose">
+                <span class="hsr-cabin"></span>
+              </div>
               <div class="hsr-train-mid">
+                <span class="hsr-stripe"></span>
+                <span class="hsr-window"></span>
                 <span class="hsr-window"></span>
                 <span class="hsr-window"></span>
                 <span class="hsr-window"></span>
               </div>
-              <div class="hsr-train-tail"></div>
+              <div class="hsr-train-coupler"></div>
+              <div class="hsr-train-tail">
+                <span class="hsr-stripe"></span>
+                <span class="hsr-window"></span>
+                <span class="hsr-window"></span>
+              </div>
             </div>
-            <div class="hsr-wheels" aria-hidden="true">
-              <span></span><span></span><span></span>
+            <div class="hsr-bogie" aria-hidden="true">
+              <span></span><span></span>
             </div>
           </div>
           <div class="rail-stations" id="rail-stations"></div>
@@ -125,34 +141,36 @@
       </div>
     </section>
 
-    <!-- 浮层：漫画地址匹配（云南） -->
+    <!-- 浮层：看图猜地点（云南四川） -->
     <section id="overlay-comicmatch" class="project-overlay overlay-comicmatch" hidden>
-      <div class="overlay-topbar comic-topbar">
-        <button type="button" class="btn-back comic-back" data-close="comicmatch">← 返回</button>
-        <span class="overlay-badge comic-badge" id="comic-progress">0 / 5</span>
+      <div class="overlay-topbar photo-topbar">
+        <button type="button" class="btn-back" data-close="comicmatch">← 返回旅程</button>
+        <span class="overlay-badge" id="comic-progress">0 / 6</span>
       </div>
-      <div class="comic-page" aria-hidden="true"></div>
-      <div class="comic-wrap" id="comic-wrap">
-        <p class="comic-intro" id="comic-intro"></p>
-        <div class="comic-manga-title" aria-hidden="true">蜜月漫游 · 地址篇</div>
-        <div class="comic-panel" id="comic-panel">
-          <div class="comic-caption" id="comic-caption">第 1 格</div>
-          <div class="comic-sfx" aria-hidden="true">SNAP!</div>
-          <div class="comic-frame">
-            <canvas id="comic-canvas" class="comic-canvas" width="720" height="900"></canvas>
-            <img id="comic-image" class="comic-image-src" alt="" hidden />
-            <div class="comic-speedlines" aria-hidden="true"></div>
-            <div class="comic-halftone" aria-hidden="true"></div>
-            <div class="comic-ink-edge" aria-hidden="true"></div>
+      <div class="photo-wrap" id="comic-wrap">
+        <div class="sx-guide" id="sx-guide">
+          <img
+            id="comic-guide-avatar"
+            class="sx-mask"
+            src="./pictures/sanxingdui-guide.png"
+            alt="三星堆铜脸向导"
+            width="78"
+            height="145"
+            decoding="async"
+          />
+          <div class="sx-bubble">
+            <p class="sx-name" id="comic-guide-name">铜脸向导</p>
+            <p class="sx-line" id="comic-intro"></p>
           </div>
-          <div class="comic-corner comic-corner-tl" aria-hidden="true"></div>
-          <div class="comic-corner comic-corner-br" aria-hidden="true"></div>
         </div>
-        <div class="comic-bubble" id="comic-bubble">
-          <p class="comic-prompt">这张，到底拍在哪儿？！</p>
+        <div class="photo-stage" id="comic-panel">
+          <div class="photo-frame">
+            <img id="comic-image" class="photo-image" alt="旅途照片" decoding="async" />
+          </div>
         </div>
-        <div class="comic-options" id="comic-options"></div>
-        <p class="hint-msg comic-feedback" id="comic-feedback"></p>
+        <p class="photo-prompt">这张照片，拍在哪里？</p>
+        <div class="photo-options" id="comic-options"></div>
+        <p class="hint-msg photo-feedback" id="comic-feedback" hidden></p>
       </div>
     </section>
 
@@ -302,45 +320,35 @@
     </section>
 
     <!-- 浮层：设计婚戒（三亚） -->
-    <section id="overlay-ringdesign" class="project-overlay" hidden>
+    <section id="overlay-ringdesign" class="project-overlay overlay-ringdesign" hidden>
       <div class="overlay-topbar">
         <button type="button" class="btn-back" data-close="ringdesign">← 返回旅程</button>
-        <span class="overlay-badge" id="ring-step-label">第 1 步</span>
+        <span class="overlay-badge" id="ring-step-label">1 · 理念</span>
       </div>
 
-      <div class="ring-design-wrap" id="ring-design-wrap">
-        <div class="ring-preview-stage" id="ring-preview-stage">
-          <canvas class="ring-preview-canvas" id="ring-preview-canvas" width="600" height="600"></canvas>
-          <div class="ring-sparkles" id="ring-sparkles" aria-hidden="true"></div>
-          <div class="ring-drag-hint" id="ring-drag-hint">拖动旋转 · 360° 观察</div>
+      <div class="ring-atelier" id="ring-design-wrap">
+        <div class="ring-showcase" id="ring-showcase">
+          <div id="ring-preview-svg" class="ring-preview-svg" aria-hidden="true"></div>
+          <p class="ring-preview-caption" id="ring-preview-caption">选择理念与金属</p>
         </div>
 
         <div class="ring-step-panel" id="ring-step-panel">
           <p class="ring-intro" id="ring-intro"></p>
 
-          <div class="ring-step active" data-step="material">
-            <h3 class="ring-step-title" id="ring-material-title"></h3>
-            <p class="ring-step-hint" id="ring-material-hint"></p>
-            <div class="ring-options" id="ring-material-opts"></div>
+          <div class="ring-step active" data-step="concept">
+            <p class="ring-step-hint" id="ring-concept-hint"></p>
+            <div class="ring-choice-list" id="ring-concept-opts"></div>
           </div>
 
-          <div class="ring-step" data-step="stone">
-            <h3 class="ring-step-title" id="ring-stone-title"></h3>
-            <p class="ring-step-hint" id="ring-stone-hint"></p>
-            <div class="ring-options" id="ring-stone-opts"></div>
-          </div>
-
-          <div class="ring-step" data-step="setting">
-            <h3 class="ring-step-title" id="ring-setting-title"></h3>
-            <p class="ring-step-hint" id="ring-setting-hint"></p>
-            <div class="ring-options" id="ring-setting-opts"></div>
+          <div class="ring-step" data-step="metal">
+            <p class="ring-step-hint" id="ring-metal-hint"></p>
+            <div class="ring-choice-list" id="ring-metal-opts"></div>
           </div>
 
           <div class="ring-step" data-step="engraving">
-            <h3 class="ring-step-title" id="ring-engraving-title"></h3>
             <p class="ring-step-hint" id="ring-engraving-hint"></p>
             <input type="text" id="ring-engraving-input" class="ring-engraving-input" maxlength="20" />
-            <button type="button" class="btn-primary ring-confirm-btn" id="ring-engraving-confirm">就这个字</button>
+            <button type="button" class="btn-primary ring-confirm-btn" id="ring-engraving-confirm">确认刻字</button>
           </div>
 
           <div class="ring-step" data-step="done">
@@ -349,8 +357,8 @@
           </div>
 
           <div class="ring-nav">
-            <button type="button" class="ring-nav-btn ring-nav-prev" id="ring-prev-btn">‹ 上一步</button>
-            <button type="button" class="ring-nav-btn ring-nav-next" id="ring-next-btn">下一步 ›</button>
+            <button type="button" class="ring-nav-btn" id="ring-prev-btn">上一步</button>
+            <button type="button" class="ring-nav-btn ring-nav-next" id="ring-next-btn">下一步</button>
           </div>
         </div>
       </div>

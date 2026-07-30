@@ -15,12 +15,12 @@
       "memory": "从这里出发，第一次牵手走过的街道，和你说「以后还要一起看很多场烟花」。"
     },
     {
-      "id": "beihai",
-      "city": "北海",
-      "icon": "🌊",
-      "tagline": "海风、银滩与你的笑声",
-      "type": "puzzle",
-      "memory": "银滩的浪拍在脚上，海风吹乱你的头发，那一刻我觉得世界可以很小——小到有你就够。"
+      "id": "nanjing",
+      "city": "南京",
+      "icon": "🎓",
+      "tagline": "我大学的四年，在这里发生",
+      "type": "silhouette",
+      "memory": "2015到2019，仙林四年，是我从少年长成大人的地方。今天，让我把这些讲给你听。"
     },
     {
       "id": "shanghai",
@@ -31,36 +31,21 @@
       "memory": "第一次一起坐那么远的高铁，看这座不夜城的天际线慢慢亮起来——直到那一天，整座城市都成了我们的见证。"
     },
     {
-      "id": "nanjing",
-      "city": "南京",
-      "icon": "🎓",
-      "tagline": "我大学的四年，在这里发生",
-      "type": "silhouette",
-      "memory": "2015到2019，仙林四年，是我从少年长成大人的地方。今天，让我把这些讲给你听。"
-    },
-    {
       "id": "sanya",
       "city": "三亚",
       "icon": "💍",
       "tagline": "在这里，我们挑中了那枚戒指",
       "type": "ringdesign",
-      "memory": "海风很轻，首饰店的灯很亮。我们一起比划、一起纠结，最后选中的那枚——就是我每天戴在手上的承诺。"
+      "memory": "海风很轻，首饰店的灯很亮。今天先用抽象理念搭一枚「想象中的婚戒」，再揭晓我们真正戴上的那一枚。"
     },
     {
-      "id": "yunnan",
-      "city": "云南",
-      "icon": "🌸",
-      "tagline": "昆明 · 大理 · 丽江，蜜月三城记",
+      "id": "xinan",
+      "city": "西南",
+      "icon": "🗿",
+      "tagline": "滇蜀足迹 · 再拼一幅海",
       "type": "comicmatch",
-      "memory": "蜜月那趟，我们一站一站往前走：昆明的湖光、大理的风、丽江的灯。今天，看看你还记不记得——这些画面，到底拍在哪儿。"
-    },
-    {
-      "id": "sichuan",
-      "city": "四川",
-      "icon": "🐼",
-      "tagline": "巴蜀的辣与慢生活",
-      "type": "memory",
-      "memory": "火锅的热气模糊了眼镜，宽窄巷子的灯笼亮起来，你说「这里好安逸，我们以后还来」。"
+      "followUp": "puzzle",
+      "memory": "这一站有两关：先跟铜脸猜西南旅途的地点，过关后再拼出北海那片海。答错地点要重来；拼图拼好，这一站才算走完。"
     },
     {
       "id": "xian",
@@ -240,123 +225,151 @@
     "outro": "这就是我的大学四年——有课、有题、有活动、有汗水、有一群兄弟。谢谢你，愿意听我讲完这一切。"
   },
   "beihaiPuzzle": {
-    "title": "北海站 · 拼出我们的画面",
-    "intro": "把打乱的画面拼回原样，就能打卡这一站啦～点任意两块即可交换位置",
+    "title": "西南站 · 第二关 · 拼出海的记忆",
+    "intro": "地点关已过。把北海那片海拼回原样，这一站才算走完～点任意两块交换位置",
     "image": "./pictures/北海.jpg",
     "size": 3,
-    "success": "拼好啦！这片海真的太美了 ❤️"
+    "success": "拼好啦！西南这一站，完整走过了 ❤️"
   },
   "sanyaRing": {
-    "title": "三亚站 · 设计我们的婚戒",
-    "intro": "还记得在三亚那个下午吗？我们一头扎进首饰店，对着柜台挑了又挑。今天，你来当设计师，亲手设计一枚属于我们的婚戒～",
+    "title": "三亚站 · 戒指工坊",
+    "intro": "还记得三亚那个下午吗？今天只选两样：设计语言，和金属颜色。最后揭晓我们真实的婚戒。",
     "realRing": {
-      "label": "其实，我们最终选的婚戒是",
+      "label": "其实，我们最终选的是",
       "desc": "一枚铂金钻戒。不浮夸、不张扬，戴在手上刚刚好——就像我们的生活。"
     },
-    "materialHint": "选个材质吧，它决定戒指的底色～",
-    "stoneHint": "主石？要不要来一颗闪的？",
-    "settingHint": "镶嵌方式，这个很影响上手效果哦～",
-    "engravingHint": "在内壁刻点什么吧，只有我们俩知道～",
-    "engravingPlaceholder": "比如：Forever Yours",
+    "conceptHint": "选一种抽象设计语言。",
+    "metalHint": "再选金属色泽。",
+    "engravingHint": "内壁刻一句只有我们懂的话。",
+    "engravingPlaceholder": "比如：Forever · 1314",
     "steps": {
-      "material": "第 1 步 · 选材质",
-      "stone": "第 2 步 · 选主石",
-      "setting": "第 3 步 · 选镶嵌",
-      "engraving": "第 4 步 · 内壁刻字",
-      "done": "完成 · 看看你的设计"
+      "concept": "1 · 理念",
+      "metal": "2 · 金属",
+      "engraving": "3 · 刻字",
+      "done": "完成"
     },
-    "teases": ["嗯～这枚有点东西！", "眼光不错嘛～", "这个组合很少见哦！", "我看行！"],
-    "finalCta": "生成设计图",
-    "compareTitle": "你的设计 vs 我们真实的婚戒",
-    "finalVow": "无论设计出什么样子，戴在手上的那枚，才是我们真正的承诺。",
-    "materials": [
-      { "id": "platinum", "name": "铂金", "color": "#e8eaed", "shine": "#ffffff" },
-      { "id": "gold", "name": "黄金", "color": "#ffd54f", "shine": "#fff8c2" },
-      { "id": "rosegold", "name": "玫瑰金", "color": "#e8b4a0", "shine": "#fce4d6" }
+    "teases": ["很干净。", "眼光不错。", "像我们会喜欢的样子。", "我看行。"],
+    "finalCta": "揭晓婚戒",
+    "compareTitle": "你的抽象设计 vs 真实婚戒",
+    "finalVow": "图可以抽象，戴在手上的那枚，才是具体的承诺。",
+    "concepts": [
+      {
+        "id": "honeycomb",
+        "name": "蜂巢",
+        "tagline": "筑巢相守",
+        "desc": "六角几何，一点点把家筑起来。"
+      },
+      {
+        "id": "link",
+        "name": "纽带",
+        "tagline": "相连同心",
+        "desc": "一桥相连，两个人被轻轻系住。"
+      },
+      {
+        "id": "solitaire",
+        "name": "独钻",
+        "tagline": "专注永恒",
+        "desc": "一颗主石，托起全部目光。"
+      }
     ],
-    "stones": [
-      { "id": "diamond", "name": "钻石", "color": "#ffffff", "sparkle": true },
-      { "id": "sapphire", "name": "蓝宝石", "color": "#5c8ee0", "sparkle": true },
-      { "id": "ruby", "name": "红宝石", "color": "#e53935", "sparkle": true },
-      { "id": "emerald", "name": "祖母绿", "color": "#43a047", "sparkle": true },
-      { "id": "none", "name": "素圈", "color": null, "sparkle": false }
-    ],
-    "settings": [
-      { "id": "prong", "name": "爪镶", "desc": "经典·把石头高高托起" },
-      { "id": "bezel", "name": "包镶", "desc": "稳重·一圈金属包住" },
-      { "id": "pave", "name": "排镶", "desc": "闪耀·一圈小钻围绕" },
-      { "id": "channel", "name": "槽镶", "desc": "低调·嵌进金属槽里" }
+    "metals": [
+      { "id": "platinum", "name": "铂金", "color": "#d8dde3", "accent": "#f5f7fa" },
+      { "id": "gold", "name": "黄金", "color": "#e0b84e", "accent": "#f6e2a0" },
+      { "id": "rosegold", "name": "玫瑰金", "color": "#d4a08c", "accent": "#f0d2c4" }
     ]
   },
   "yunnanMatch": {
-    "title": "云南站 · 漫画地址匹配",
-    "intro": "蜜月三城：昆明 → 大理 → 丽江。下面每张「漫画格」都来自我们的旅途，请选出它拍在哪里～答对 5 题即可通关。",
-    "passCount": 5,
-    "note": "地点为根据画面暂猜，可在 content.json 里改正。",
+    "title": "西南站 · 第一关 · 看图猜地点",
+    "guideName": "铜脸向导",
+    "guideAvatar": "./pictures/sanxingdui-guide.png",
+    "intro": "西南双关之第一关。吾乃铜脸。连续答对 6 题可进入拼图关；答错则一切归零。",
+    "passCount": 6,
+    "guideLines": {
+      "start": "瞪大眼睛看仔细——这张，汝可知何处？",
+      "correct": "答得不错。下一张，继续。",
+      "wrong": "错了。进度归零，从头再来。",
+      "pass": "地点关过了。下一关：把海拼回来。"
+    },
     "rounds": [
       {
         "id": "r1",
-        "image": "./pictures/云南/漫画/dali-gucheng.jpg",
-        "comicTitle": "第 1 格 · 白墙彩绘",
-        "correct": "大理 · 大理古城",
-        "options": ["昆明 · 翠湖公园", "大理 · 大理古城", "丽江 · 丽江古城", "大理 · 喜洲古镇"],
-        "wrongHint": "再看看身后的白族白墙和彩绘边饰～"
+        "image": "./pictures/云南/漫画/erhai.jpg",
+        "comicTitle": "船上的风",
+        "correct": "大理 · 洱海",
+        "options": ["昆明 · 滇池", "大理 · 洱海", "丽江 · 拉市海", "广西 · 北海银滩"],
+        "wrongHint": "船上、湖光、岸边的绿——这是洱海哦。"
       },
       {
         "id": "r2",
-        "image": "./pictures/云南/漫画/dali-erhai-swing.jpg",
-        "comicTitle": "第 2 格 · 水上秋千",
-        "correct": "大理 · 洱海边",
-        "options": ["昆明 · 滇池边", "大理 · 洱海边", "丽江 · 黑龙潭", "大理 · 苍山索道"],
-        "wrongHint": "背后那片宽阔的湖，是洱海哦。"
+        "image": "./pictures/云南/漫画/kunming-dianchi.jpg",
+        "comicTitle": "湖对岸的城市",
+        "correct": "昆明 · 滇池",
+        "options": ["大理 · 洱海", "昆明 · 滇池", "丽江 · 黑龙潭", "四川 · 九寨沟"],
+        "wrongHint": "对岸是城市天际线，更像滇池。"
       },
       {
         "id": "r3",
-        "image": "./pictures/云南/漫画/kunming-dianchi.jpg",
-        "comicTitle": "第 3 格 · 湖对岸的高楼",
-        "correct": "昆明 · 滇池边",
-        "options": ["大理 · 洱海边", "昆明 · 滇池边", "丽江 · 拉市海", "昆明 · 西山龙门"],
-        "wrongHint": "对岸是城市天际线——更像滇池，不太像洱海。"
+        "image": "./pictures/云南/漫画/kunming-skycity.jpg",
+        "comicTitle": "天空圆环",
+        "correct": "昆明 · 天空之城",
+        "options": ["昆明 · 西山龙门", "昆明 · 天空之城", "大理 · 喜洲古镇", "丽江 · 束河古镇"],
+        "wrongHint": "圆形小区、仰望天空——昆明「天空之城」。"
       },
       {
         "id": "r4",
-        "image": "./pictures/云南/漫画/dali-cangshan.jpg",
-        "comicTitle": "第 4 格 · 黄玫瑰与蓝湖",
-        "correct": "大理 · 洱海双廊一带",
-        "options": ["昆明 · 滇池海埂", "大理 · 洱海双廊一带", "丽江 · 束河古镇", "大理 · 大理古城南门"],
-        "wrongHint": "湖水、白墙蓝瓦、沿湖建筑——双廊/洱海沿线更贴。"
+        "image": "./pictures/云南/漫画/shaxi.jpg",
+        "comicTitle": "古镇一角",
+        "correct": "大理 · 沙溪古镇",
+        "options": ["丽江 · 丽江古城", "大理 · 沙溪古镇", "大理 · 大理古城", "昆明 · 南强街"],
+        "wrongHint": "茶马古道上的安静古镇——沙溪。"
       },
       {
         "id": "r5",
-        "image": "./pictures/云南/漫画/dali-erhai-bench.jpg",
-        "comicTitle": "第 5 格 · 树下躺平",
-        "correct": "大理 · 洱海生态廊道",
-        "options": ["昆明 · 翠湖", "大理 · 洱海生态廊道", "丽江 · 玉龙雪山脚下", "大理 · 喜洲"],
-        "wrongHint": "湖面、芦苇、远山——洱海边散步道的感觉。"
+        "image": "./pictures/云南/漫画/shaxi-2.jpg",
+        "comicTitle": "古镇时光",
+        "correct": "大理 · 沙溪古镇",
+        "options": ["大理 · 喜洲", "昆明 · 翠湖", "大理 · 沙溪古镇", "丽江 · 束河"],
+        "wrongHint": "还是沙溪，和上一张同一座古镇。"
       },
       {
         "id": "r6",
-        "image": "./pictures/云南/漫画/lijiang-bridge.jpg",
-        "comicTitle": "第 6 格 · 石拱桥",
-        "correct": "丽江 · 古城水系附近",
-        "options": ["大理 · 洋人街", "昆明 · 南强街", "丽江 · 古城水系附近", "大理 · 才村码头"],
-        "wrongHint": "单拱石桥 + 河岸，更像丽江水系边的一景。"
+        "image": "./pictures/云南/漫画/lijiang-lashi.jpg",
+        "comicTitle": "湖边骑马？",
+        "correct": "丽江 · 拉市海",
+        "options": ["大理 · 洱海", "昆明 · 滇池", "丽江 · 拉市海", "四川 · 九寨沟"],
+        "wrongHint": "丽江郊外那片高原湖泊——拉市海。"
       },
       {
         "id": "r7",
-        "image": "./pictures/云南/漫画/lijiang-yulong.jpg",
-        "comicTitle": "第 7 格 · 心形祈愿",
-        "correct": "丽江 · 玉龙雪山祈愿处",
-        "options": ["大理 · 崇圣寺三塔", "丽江 · 玉龙雪山祈愿处", "昆明 · 金殿", "丽江 · 丽江古城大水车"],
-        "wrongHint": "木栏上挂满心形许愿牌和铃铛，雪山景区很常见。"
+        "image": "./pictures/云南/漫画/lijiang-lashi-2.jpg",
+        "comicTitle": "拉市海畔",
+        "correct": "丽江 · 拉市海",
+        "options": ["大理 · 双廊", "丽江 · 拉市海", "昆明 · 大观楼", "广西 · 北海"],
+        "wrongHint": "又是拉市海～"
       },
       {
         "id": "r8",
-        "image": "./pictures/云南/漫画/dali-riverside.jpg",
-        "comicTitle": "第 8 格 · 河畔惊叹",
-        "correct": "大理 · 古城护城河一带",
-        "options": ["丽江 · 黑龙潭", "大理 · 古城护城河一带", "昆明 · 大观楼", "大理 · 苍山感通寺"],
-        "wrongHint": "河道、绿树、传统屋顶——更贴近大理城边水景。"
+        "image": "./pictures/云南/漫画/lijiang-yulong.jpg",
+        "comicTitle": "心形祈愿",
+        "correct": "丽江 · 玉龙雪山",
+        "options": ["大理 · 崇圣寺三塔", "丽江 · 玉龙雪山", "昆明 · 金殿", "丽江 · 古城大水车"],
+        "wrongHint": "心形许愿牌 + 雪山景区——玉龙雪山。"
+      },
+      {
+        "id": "r9",
+        "image": "./pictures/云南/漫画/jiuzhaigou.jpg",
+        "comicTitle": "彩池秘境",
+        "correct": "四川 · 九寨沟",
+        "options": ["云南 · 普者黑", "四川 · 九寨沟", "云南 · 泸沽湖", "大理 · 洱海"],
+        "wrongHint": "这张溜出云南啦——是四川九寨沟！"
+      },
+      {
+        "id": "r10",
+        "image": "./pictures/云南/漫画/beihai-trip.jpg",
+        "comicTitle": "海边的你们",
+        "correct": "广西 · 北海",
+        "options": ["海南 · 三亚", "广西 · 北海", "云南 · 抚仙湖", "福建 · 厦门"],
+        "wrongHint": "又不是云南——这是广西北海哦。"
       }
     ]
   },
@@ -383,7 +396,7 @@
   "letter": {
     "greeting": "亲爱的宝贝：",
     "paragraphs": [
-      "生日快乐。从浏阳到长沙，从上海到南京，从三亚到云南，再到四川、西安——每一站都有你的笑声。",
+      "生日快乐。从浏阳到南京，从上海到三亚，再经西南，到西安——每一站都有你的笑声。",
       "谢谢你愿意和我一起坐那么远的高铁、走那么长的路。这张车票没有终点，因为「未完待续」的下一站，还是我和你。",
       "愿你新的一岁，平安喜乐，所愿皆成。我会一直在你身边。"
     ],
