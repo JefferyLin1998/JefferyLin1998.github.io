@@ -1,146 +1,402 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <title>Password Protected</title>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>专属车票</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="robots" content="noindex, nofollow">
+    :root {
+      --ink: #143528;
+      --ink-soft: #3d5c4a;
+      --paper: #f3f7f1;
+      --leaf: #2f7d4a;
+      --leaf-deep: #1f5a36;
+      --gold: #c9a227;
+      --mist: rgba(255, 255, 255, 0.72);
+    }
 
-        <style>
-            *,
-            *:after,
-            *:before {
-                box-sizing: border-box;
-            }
-            body,
-            html {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-                font-weight: 300;
-                font-size: 16px;
-                background: #f2f2f2;
-                color: #2D3737;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 100%;
-            }
+    html,
+    body {
+      min-height: 100%;
+      min-height: 100dvh;
+    }
 
-            .protected {
-                background: #fff;
-                -webkit-box-shadow: 0 2px 3px 0 rgba(0,0,0,0.1);
-                box-shadow: 0 2px 3px 0 rgba(0,0,0,0.1);
-                border-radius: 3px;
-                min-width: 500px;
+    body {
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 90% 70% at 15% 10%, rgba(201, 162, 39, 0.22), transparent 55%),
+        radial-gradient(ellipse 80% 60% at 90% 85%, rgba(47, 125, 74, 0.28), transparent 50%),
+        linear-gradient(155deg, #dce9df 0%, #b7d0bf 42%, #8fb89a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(24px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      position: relative;
+    }
 
-            }
-            .protected__content {
-                padding: 24px 28px;
-            }
-            .protected__content__heading {
-                font-size: 16px;
-                font-weight: 500;
-                margin: 0 0 12px;
-                line-height: 1;
-            }
-            .protected__alert {
-                display: none;
-                border-bottom: 1px solid transparent;
-                border-radius: 3px 3px 0 0;
-                padding: 12px 14px;
-                color: #a94442;
-                background-color: #f2dede;
-                border-color: #ebccd1;
-            }
-            .protected__content__input {
-                display: block;
-                border: solid 1px #ccc;
-                padding: 12px 14px;
-                -webkit-box-shadow: 0 2px 3px 0 rgba(0,0,0,0.1);
-                box-shadow: 0 2px 3px 0 rgba(0,0,0,0.1);
-                font-size: 16px;
-                width: 100%;
-                border-radius: 3px;
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0,
+          transparent 47px,
+          rgba(20, 53, 40, 0.045) 47px,
+          rgba(20, 53, 40, 0.045) 48px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 47px,
+          rgba(20, 53, 40, 0.035) 47px,
+          rgba(20, 53, 40, 0.035) 48px
+        );
+      mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
+      animation: grid-drift 28s linear infinite;
+    }
 
-                margin-bottom: 12px;
-            }
-            .protected__content__input:focus {
-                outline: none;
-                border-color: #228843;
-            }
-            .protected__content__btn {
-                background-color: #228843;
-                border-radius: 3px;
-                cursor: pointer;
-                border: none;
-                color: #fff;
-                padding: 12px 14px;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-                font-weight: 500;
-                font-size: 16px;
+    @keyframes grid-drift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-48px, -48px, 0); }
+    }
 
-            }
-            .protected__content__btn:hover {
-                background-color: #1C6D36;
-            }
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.55;
+    }
 
-        </style>
+    .orb-a {
+      width: 220px;
+      height: 220px;
+      background: rgba(201, 162, 39, 0.35);
+      top: 8%;
+      left: -40px;
+      animation: float-a 9s ease-in-out infinite;
+    }
 
-    </head>
+    .orb-b {
+      width: 280px;
+      height: 280px;
+      background: rgba(47, 125, 74, 0.35);
+      bottom: 4%;
+      right: -60px;
+      animation: float-b 11s ease-in-out infinite;
+    }
 
-    <body>
+    @keyframes float-a {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(18px, 24px); }
+    }
 
-        <div class="protected">
-            <div class="protected__alert" data-id="alert">You entered the wrong password</div>
-            <div class="protected__content">
-                <h1 class="protected__content__heading">You need a password to continue</h1>
-                <input class="protected__content__input" data-id="password" type="password" placeholder="password"/>
-                <button data-id="button" type="button" class="protected__content__btn">Continue</button>
-            </div>
-        </div>
+    @keyframes float-b {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-22px, -16px); }
+    }
 
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-sha1/0.6.0/sha1.min.js"></script>
-        <script type="text/javascript">
-            "use strict"
-            var button = document.querySelectorAll('[data-id="button"]')
-            var password = document.querySelectorAll('[data-id="password"]')
+    .gate {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 420px);
+      text-align: center;
+      animation: rise-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
 
-            function login(secret) {
-                var hash = sha1(secret)
-                var url = hash + "/index.html"
-                var alert = document.querySelectorAll('[data-id="alert"]')
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-                var request = new XMLHttpRequest()
-                request.open('GET', url, true)
+    .brand {
+      font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      font-size: clamp(2.4rem, 9vw, 3.2rem);
+      letter-spacing: 0.18em;
+      text-indent: 0.18em;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 14px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
 
-                request.onload = function () {
-                    if (request.status >= 200 && request.status < 400) {
-                        window.location = url
-                    } else {
-                        parent.location.hash = hash
-                        alert[0].style.display = 'block'
-                        password[0].setAttribute('placeholder', 'Incorrect password')
-                        password[0].value = ''
-                    }
-                }
-                request.onerror = function () {
-                    parent.location.hash = hash
-                    alert[0].style.display = 'block'
-                    password[0].setAttribute('placeholder', 'Incorrect password')
-                    password[0].value = ''
-                }
-                request.send()
-            }
+    .brand-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      color: var(--ink-soft);
+      font-size: 0.78rem;
+      letter-spacing: 0.28em;
+      text-indent: 0.28em;
+    }
 
-            button[0].addEventListener("click", function () {
-                login(password[0].value)
-            })
+    .brand-line::before,
+    .brand-line::after {
+      content: "";
+      width: 36px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
 
-            document.onkeydown = function (e) {
-                e = e || window.event
-                if (e.keyCode == 13) {
-                    login(password[0].value)
-                }
-            }
-        </script>
-    </body>
+    .headline {
+      font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+      font-size: clamp(1.35rem, 5vw, 1.7rem);
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .support {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      margin-bottom: 28px;
+    }
+
+    .panel {
+      background: var(--mist);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 18px;
+      padding: 22px 20px 20px;
+      box-shadow: 0 18px 40px rgba(20, 53, 40, 0.12);
+      text-align: left;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(180, 55, 55, 0.1);
+      border: 1px solid rgba(180, 55, 55, 0.25);
+      color: #8a2b2b;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    .alert.is-visible {
+      display: block;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      color: var(--ink-soft);
+      margin-bottom: 8px;
+    }
+
+    .field {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      min-height: 52px;
+      padding: 14px 16px;
+      border: 1.5px solid rgba(20, 53, 40, 0.18);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font-size: 1.05rem;
+      font-family: inherit;
+      letter-spacing: 0.2em;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input[type="password"]::placeholder {
+      color: rgba(61, 92, 74, 0.45);
+      letter-spacing: 0.08em;
+    }
+
+    input[type="password"]:focus {
+      border-color: var(--leaf);
+      box-shadow: 0 0 0 3px rgba(47, 125, 74, 0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      min-height: 52px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--leaf) 0%, var(--leaf-deep) 100%);
+      color: #f7fff9;
+      font-family: inherit;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-indent: 0.16em;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(31, 90, 54, 0.28);
+      transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:hover {
+      box-shadow: 0 12px 26px rgba(31, 90, 54, 0.34);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.is-loading {
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .hint {
+      margin-top: 18px;
+      font-size: 0.78rem;
+      color: rgba(61, 92, 74, 0.75);
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-a" aria-hidden="true"></div>
+  <div class="orb orb-b" aria-hidden="true"></div>
+
+  <main class="gate">
+    <h1 class="brand">专属车票</h1>
+    <p class="brand-line">G1314</p>
+    <p class="headline">输入口令，启程</p>
+    <p class="support">这趟车不为远方，只为把你送到我们走过的每一站。</p>
+
+    <div class="panel">
+      <div class="alert" data-id="alert" role="alert">口令不对哦，再试一次～</div>
+      <label for="password">通行口令</label>
+      <div class="field">
+        <input
+          id="password"
+          class="protected__content__input"
+          data-id="password"
+          type="password"
+          inputmode="numeric"
+          autocomplete="current-password"
+          placeholder="请输入口令"
+          aria-label="通行口令"
+        />
+      </div>
+      <div class="actions">
+        <button data-id="button" type="button">启程</button>
+      </div>
+    </div>
+    <p class="hint">仅限收到这份礼物的人进入</p>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha1/0.6.0/sha1.min.js"></script>
+  <script>
+    "use strict";
+
+    var button = document.querySelector('[data-id="button"]');
+    var password = document.querySelector('[data-id="password"]');
+    var alertBox = document.querySelector('[data-id="alert"]');
+
+    function showError() {
+      alertBox.classList.add("is-visible");
+      password.setAttribute("placeholder", "口令不正确");
+      password.value = "";
+      password.focus();
+      button.classList.remove("is-loading");
+    }
+
+    function login(secret) {
+      if (!secret) {
+        password.focus();
+        return;
+      }
+
+      button.classList.add("is-loading");
+      alertBox.classList.remove("is-visible");
+
+      var hash = sha1(secret);
+      var url = hash + "/index.html";
+      var request = new XMLHttpRequest();
+      request.open("GET", url, true);
+
+      request.onload = function () {
+        if (request.status >= 200 && request.status < 400) {
+          window.location = url;
+        } else {
+          parent.location.hash = hash;
+          showError();
+        }
+      };
+
+      request.onerror = function () {
+        parent.location.hash = hash;
+        showError();
+      };
+
+      request.send();
+    }
+
+    button.addEventListener("click", function () {
+      login(password.value);
+    });
+
+    password.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        login(password.value);
+      }
+    });
+
+    password.focus();
+  </script>
+</body>
 </html>

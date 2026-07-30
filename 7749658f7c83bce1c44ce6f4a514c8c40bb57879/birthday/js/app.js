@@ -1820,12 +1820,45 @@
     return Math.round(Math.round(v / step) * step);
   }
 
-  function applyComicFilter(img) {
+  function isLowPowerDevice() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return true;
+    }
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) {
+      return true;
+    }
+    return window.innerWidth < 700;
+  }
+
+  function getComicOutputSize() {
+    var cssW = Math.min(440, window.innerWidth - 32);
+    var dpr = Math.min(window.devicePixelRatio || 1, isLowPowerDevice() ? 1.25 : 1.75);
+    var outW = Math.max(280, Math.round(cssW * dpr));
+    outW = Math.min(outW, isLowPowerDevice() ? 420 : 560);
+    var outH = Math.round(outW * 1.25);
+    return { w: outW, h: outH };
+  }
+
+  var comicFilterCache = {};
+  var comicFilterToken = 0;
+
+  function applyComicFilter(img, token) {
     var canvas = el.comicCanvas;
     if (!canvas || !img || !img.naturalWidth) return;
+    if (token != null && token !== comicFilterToken) return;
 
-    var outW = 720;
-    var outH = 900;
+    var size = getComicOutputSize();
+    var outW = size.w;
+    var outH = size.h;
+    var lowPower = isLowPowerDevice();
+    var cacheKey = (img.src || "") + "|" + outW + "x" + outH + "|" + (lowPower ? "L" : "H");
+    if (comicFilterCache[cacheKey]) {
+      canvas.width = outW;
+      canvas.height = outH;
+      canvas.getContext("2d").putImageData(comicFilterCache[cacheKey], 0, 0);
+      return;
+    }
+
     canvas.width = outW;
     canvas.height = outH;
 
@@ -1845,97 +1878,101 @@
     var h = outH;
     var imageData = ctx.getImageData(0, 0, w, h);
     var data = imageData.data;
-    var gray = new Float32Array(w * h);
     var i;
     var r;
     var g;
     var b;
     var lum;
-    var idx;
 
+    /* 轻量：只做对比度 + 色阶，手机跳过全图 Sobel */
     for (i = 0; i < data.length; i += 4) {
       r = data[i];
       g = data[i + 1];
       b = data[i + 2];
       lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      lum = (lum - 128) * 1.4 + 128;
-      lum = Math.max(0, Math.min(255, lum));
-      gray[i / 4] = lum;
+      lum = (lum - 128) * 1.35 + 128;
 
-      r = posterizeChannel((r - 128) * 1.35 + 128, 4);
-      g = posterizeChannel((g - 128) * 1.35 + 128, 4);
-      b = posterizeChannel((b - 128) * 1.35 + 128, 4);
+      r = posterizeChannel((r - 128) * 1.28 + 128, 5);
+      g = posterizeChannel((g - 128) * 1.28 + 128, 5);
+      b = posterizeChannel((b - 128) * 1.28 + 128, 5);
 
       if (lum < 75) {
-        r = Math.floor(r * 0.45);
-        g = Math.floor(g * 0.45);
-        b = Math.floor(b * 0.45);
+        r = (r * 0.5) | 0;
+        g = (g * 0.5) | 0;
+        b = (b * 0.5) | 0;
       } else if (lum > 205) {
-        r = Math.min(255, r + 36);
-        g = Math.min(255, g + 36);
-        b = Math.min(255, b + 36);
+        r = r + 28 > 255 ? 255 : r + 28;
+        g = g + 28 > 255 ? 255 : g + 28;
+        b = b + 28 > 255 ? 255 : b + 28;
       }
 
-      data[i] = Math.max(0, Math.min(255, r));
-      data[i + 1] = Math.max(0, Math.min(255, g));
-      data[i + 2] = Math.max(0, Math.min(255, b));
+      data[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+      data[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+      data[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
     }
 
-    var edges = new Uint8Array(w * h);
-    for (var y = 1; y < h - 1; y++) {
-      for (var x = 1; x < w - 1; x++) {
-        idx = y * w + x;
-        var gx =
-          -gray[idx - w - 1] +
-          gray[idx - w + 1] +
-          -2 * gray[idx - 1] +
-          2 * gray[idx + 1] +
-          -gray[idx + w - 1] +
-          gray[idx + w + 1];
-        var gy =
-          -gray[idx - w - 1] -
-          2 * gray[idx - w] -
-          gray[idx - w + 1] +
-          gray[idx + w - 1] +
-          2 * gray[idx + w] +
-          gray[idx + w + 1];
-        var mag = Math.sqrt(gx * gx + gy * gy);
-        edges[idx] = mag > 42 ? 1 : 0;
+    if (!lowPower) {
+      var gray = new Uint8Array(w * h);
+      for (i = 0; i < gray.length; i++) {
+        var p = i * 4;
+        gray[i] = (0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2]) | 0;
       }
-    }
-
-    for (i = 0; i < edges.length; i++) {
-      if (!edges[i]) continue;
-      idx = i * 4;
-      data[idx] = 12;
-      data[idx + 1] = 12;
-      data[idx + 2] = 16;
+      /* 降采样步进描边，减少手机/桌面开销 */
+      var step = 2;
+      for (var y = 1; y < h - 1; y += step) {
+        for (var x = 1; x < w - 1; x += step) {
+          var idx = y * w + x;
+          var gx = -gray[idx - 1] + gray[idx + 1];
+          var gy = -gray[idx - w] + gray[idx + w];
+          var mag = Math.abs(gx) + Math.abs(gy);
+          if (mag > 56) {
+            var px = idx * 4;
+            data[px] = 12;
+            data[px + 1] = 12;
+            data[px + 2] = 16;
+            if (x + 1 < w) {
+              data[px + 4] = 12;
+              data[px + 5] = 12;
+              data[px + 6] = 16;
+            }
+          }
+        }
+      }
     }
 
     ctx.putImageData(imageData, 0, 0);
+    try {
+      comicFilterCache[cacheKey] = ctx.getImageData(0, 0, w, h);
+    } catch (e) {
+      /* ignore quota */
+    }
   }
 
   function loadComicPanel(src, altText) {
     if (!el.comicImage) return;
+    var token = ++comicFilterToken;
     el.comicImage.onload = function () {
-      applyComicFilter(el.comicImage);
+      if (token !== comicFilterToken) return;
+      /* 让 UI 先画出来，再做滤镜，避免卡住点击 */
+      setTimeout(function () {
+        applyComicFilter(el.comicImage, token);
+      }, 16);
     };
     el.comicImage.onerror = function () {
-      if (!el.comicCanvas) return;
+      if (!el.comicCanvas || token !== comicFilterToken) return;
+      var size = getComicOutputSize();
       var ctx = el.comicCanvas.getContext("2d");
-      el.comicCanvas.width = 720;
-      el.comicCanvas.height = 900;
+      el.comicCanvas.width = size.w;
+      el.comicCanvas.height = size.h;
       ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(0, 0, 720, 900);
+      ctx.fillRect(0, 0, size.w, size.h);
       ctx.fillStyle = "#fff";
-      ctx.font = "24px sans-serif";
-      ctx.fillText("加载失败", 300, 450);
+      ctx.font = "16px sans-serif";
+      ctx.fillText("加载失败", size.w / 2 - 32, size.h / 2);
     };
     el.comicImage.alt = altText || "蜜月漫画格";
+    el.comicImage.decoding = "async";
     el.comicImage.src = src;
-    if (el.comicImage.complete && el.comicImage.naturalWidth) {
-      applyComicFilter(el.comicImage);
-    }
   }
 
   function startComicMatch(station) {
@@ -1946,6 +1983,15 @@
     comicQueue = shuffleArray(data.rounds || []);
     if (el.comicIntro) el.comicIntro.textContent = data.intro || "";
     updateComicProgress();
+
+    /* 预加载后续题图，减少翻题等待 */
+    (data.rounds || []).forEach(function (round) {
+      if (!round || !round.image) return;
+      var pre = new Image();
+      pre.decoding = "async";
+      pre.src = round.image;
+    });
+
     renderComicRound();
   }
 

@@ -1599,6 +1599,28 @@ h2 {
   .comic-sfx {
     font-size: 1.1rem;
   }
+
+  .comic-speedlines {
+    animation: none !important;
+    opacity: 0.12;
+  }
+
+  .comic-halftone {
+    opacity: 0.28;
+    background-size: 5px 5px, 8px 8px;
+  }
+
+  .comic-manga-title {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comic-speedlines,
+  .comic-sfx,
+  .comic-bubble {
+    animation: none !important;
+  }
 }
 
 /* ── 设计婚戒（三亚） ── */
