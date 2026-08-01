@@ -1299,236 +1299,747 @@
     }
   }
 
-  /* ── 三亚站：戒指工坊（抽象） ── */
-  var ringStep = "concept";
-  var ringChoices = { concept: null, metal: null, engraving: "" };
-  var RING_STEP_ORDER = ["concept", "metal", "engraving", "done"];
+  /* ── 三亚站：选钻小课堂 ── */
+  var ringParamIndex = 0;
+  var ringPhase = "param";
+  var ringChoices = {};
 
   function getRingData() {
-    return content.sanyaRing || { concepts: [], metals: [] };
+    return content.sanyaRing || { paramSteps: [], realRing: {} };
   }
 
-  function getSelectedRingConcept() {
-    var data = getRingData();
-    return (data.concepts || []).find(function (c) {
-      return c.id === ringChoices.concept;
+  function getRingParamSteps() {
+    return getRingData().paramSteps || [];
+  }
+
+  function getRingOption(stepId, optionId) {
+    var step = getRingParamSteps().find(function (s) {
+      return s.id === stepId;
+    });
+    if (!step) return null;
+    return (step.options || []).find(function (o) {
+      return o.id === optionId;
     }) || null;
   }
 
-  function getSelectedRingMetal() {
-    var data = getRingData();
-    return (data.metals || []).find(function (m) {
-      return m.id === ringChoices.metal;
-    }) || null;
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
-  function ringSvgMarkup(conceptId, metal) {
-    var color = (metal && metal.color) || "#d8dde3";
-    var accent = (metal && metal.accent) || "#f5f7fa";
-    var cid = conceptId || "solitaire";
+  function getRingPreviewState() {
+    return {
+      carat: ringChoices.carat || "50",
+      color: ringChoices.color || "gh",
+      clarity: ringChoices.clarity || "vs",
+      cut: ringChoices.cut || "3ex",
+      metal: ringChoices.metal || "platinum",
+      style: ringChoices.style || "solitaire",
+      locked: {
+        carat: !!ringChoices.carat,
+        color: !!ringChoices.color,
+        clarity: !!ringChoices.clarity,
+        cut: !!ringChoices.cut,
+        metal: !!ringChoices.metal,
+        style: !!ringChoices.style
+      }
+    };
+  }
 
-    if (cid === "honeycomb") {
+  function ringMetalPalette(metalId) {
+    if (metalId === "rosegold") {
+      return { band: "#d4a08c", light: "#f6ddd0", dark: "#8f5c4c", mid: "#e0b8a8" };
+    }
+    if (metalId === "white18k") {
+      return { band: "#e5e8ec", light: "#ffffff", dark: "#8992a0", mid: "#cfd4da" };
+    }
+    return { band: "#c8d0d8", light: "#f8fafc", dark: "#6d7986", mid: "#aeb8c2" };
+  }
+
+  function ringDiamondPalette(colorId) {
+    if (colorId === "df") {
+      return {
+        body: "#e9f2fb",
+        glow: "#ffffff",
+        edge: "#88a4c2",
+        facetLight: "#ffffff",
+        facetDark: "#cfe1f2",
+        tableCore: "#ffffff"
+      };
+    }
+    if (colorId === "ij") {
+      return {
+        body: "#f5ead1",
+        glow: "#fffaf0",
+        edge: "#bd9a63",
+        facetLight: "#fffaf0",
+        facetDark: "#ecd6a8",
+        tableCore: "#fffdf6"
+      };
+    }
+    return {
+      body: "#edf0f3",
+      glow: "#ffffff",
+      edge: "#8f9ca9",
+      facetLight: "#ffffff",
+      facetDark: "#dbe1e7",
+      tableCore: "#ffffff"
+    };
+  }
+
+  function ringCaratRadius(caratId) {
+    if (caratId === "30") return 11;
+    if (caratId === "100") return 20;
+    return 15;
+  }
+
+  function ringCutSparkle(cutId) {
+    if (cutId === "good") return { rays: 4, opacity: 0.28, facetBoost: 0.5 };
+    if (cutId === "vg") return { rays: 6, opacity: 0.5, facetBoost: 0.78 };
+    return { rays: 8, opacity: 0.82, facetBoost: 1 };
+  }
+
+  function ringPolarPt(cx, cy, r, deg) {
+    var rad = (deg * Math.PI) / 180;
+    return [
+      (cx + r * Math.cos(rad)).toFixed(1),
+      (cy + r * Math.sin(rad)).toFixed(1)
+    ];
+  }
+
+  function ringClarityMarks(clarityId, cx, cy, r) {
+    if (clarityId === "vvs") return "";
+    if (clarityId === "vs") {
       return (
-        '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
-        '<ellipse cx="120" cy="108" rx="78" ry="28" fill="none" stroke="' + color + '" stroke-width="16"/>' +
-        '<path d="M78 92 L92 84 L106 92 L106 108 L92 116 L78 108 Z" fill="' + accent + '" stroke="' + color + '" stroke-width="2"/>' +
-        '<path d="M106 92 L120 84 L134 92 L134 108 L120 116 L106 108 Z" fill="' + color + '"/>' +
-        '<path d="M134 92 L148 84 L162 92 L162 108 L148 116 L134 108 Z" fill="' + accent + '" stroke="' + color + '" stroke-width="2"/>' +
-        '<circle cx="120" cy="68" r="10" fill="#fff" stroke="' + color + '" stroke-width="2"/>' +
-        "</svg>"
+        '<circle cx="' +
+        (cx + r * 0.22) +
+        '" cy="' +
+        (cy - r * 0.08) +
+        '" r="0.8" fill="rgba(70,80,90,0.2)"/>'
       );
     }
+    return (
+      '<circle cx="' +
+      (cx + r * 0.26) +
+      '" cy="' +
+      (cy - r * 0.1) +
+      '" r="1.1" fill="rgba(60,70,80,0.3)"/>' +
+      '<circle cx="' +
+      (cx - r * 0.2) +
+      '" cy="' +
+      (cy + r * 0.24) +
+      '" r="0.7" fill="rgba(60,70,80,0.24)"/>'
+    );
+  }
 
-    if (cid === "link") {
-      return (
-        '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
-        '<rect x="42" y="96" width="156" height="18" rx="4" fill="' + color + '"/>' +
-        '<path d="M104 96 L120 78 L136 96" fill="none" stroke="' + color + '" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<circle cx="112" cy="88" r="3" fill="#fff"/>' +
-        '<circle cx="120" cy="84" r="3" fill="#fff"/>' +
-        '<circle cx="128" cy="88" r="3" fill="#fff"/>' +
-        '<ellipse cx="120" cy="105" rx="70" ry="8" fill="' + accent + '" opacity="0.55"/>' +
-        "</svg>"
-      );
+  function ringSparkleRays(cx, cy, r, cut) {
+    var html = "";
+    var n = cut.rays;
+    for (var i = 0; i < n; i++) {
+      var a = (Math.PI * 2 * i) / n - Math.PI / 2;
+      var x1 = cx + Math.cos(a) * (r + 3);
+      var y1 = cy + Math.sin(a) * (r + 3);
+      var x2 = cx + Math.cos(a) * (r + 10 + (i % 2) * 3);
+      var y2 = cy + Math.sin(a) * (r + 10 + (i % 2) * 3);
+      html +=
+        '<line x1="' +
+        x1.toFixed(1) +
+        '" y1="' +
+        y1.toFixed(1) +
+        '" x2="' +
+        x2.toFixed(1) +
+        '" y2="' +
+        y2.toFixed(1) +
+        '" stroke="rgba(255,255,255,' +
+        cut.opacity +
+        ')" stroke-width="1.2" stroke-linecap="round"/>';
+    }
+    return html;
+  }
+
+  /**
+   * Round brilliant top-view: octagon table + 8 kite/star facets radiating
+   * to the girdle, plus specular flashes tuned by cut quality.
+   */
+  function ringFacetedGem(cx, cy, r, gem, cut, clarityId, uid) {
+    var tableR = r * 0.44;
+    var angles = [];
+    var i;
+    for (i = 0; i < 8; i++) angles.push(-90 + i * 45);
+
+    function tablePt(idx) {
+      return ringPolarPt(cx, cy, tableR, angles[((idx % 8) + 8) % 8]);
+    }
+    function girdlePt(idx) {
+      return ringPolarPt(cx, cy, r, angles[((idx % 8) + 8) % 8] + 22.5);
+    }
+
+    var html =
+      '<circle cx="' +
+      cx +
+      '" cy="' +
+      cy +
+      '" r="' +
+      r +
+      '" fill="url(#' +
+      uid +
+      'gem)" stroke="' +
+      gem.edge +
+      '" stroke-width="1"/>';
+
+    for (i = 0; i < 8; i++) {
+      var p1 = tablePt(i);
+      var p2 = tablePt(i + 1);
+      var p3 = girdlePt(i);
+      var shade = i % 2 === 0 ? gem.facetLight : gem.facetDark;
+      html +=
+        '<polygon points="' +
+        p1.join(",") +
+        " " +
+        p2.join(",") +
+        " " +
+        p3.join(",") +
+        '" fill="' +
+        shade +
+        '" stroke="' +
+        gem.edge +
+        '" stroke-width="0.4" opacity="0.92"/>';
+    }
+
+    var tablePts = [];
+    for (i = 0; i < 8; i++) tablePts.push(tablePt(i).join(","));
+    html +=
+      '<polygon points="' +
+      tablePts.join(" ") +
+      '" fill="url(#' +
+      uid +
+      'table)" stroke="' +
+      gem.edge +
+      '" stroke-width="0.5"/>';
+
+    var flashA = [tablePt(0), tablePt(1), girdlePt(0)]
+      .map(function (p) {
+        return p.join(",");
+      })
+      .join(" ");
+    var flashB = [tablePt(4), tablePt(5), girdlePt(4)]
+      .map(function (p) {
+        return p.join(",");
+      })
+      .join(" ");
+    html +=
+      '<polygon points="' +
+      flashA +
+      '" fill="#ffffff" opacity="' +
+      (0.55 * cut.facetBoost).toFixed(2) +
+      '"/>';
+    html +=
+      '<polygon points="' +
+      flashB +
+      '" fill="#ffffff" opacity="' +
+      (0.3 * cut.facetBoost).toFixed(2) +
+      '"/>';
+
+    var glint = ringPolarPt(cx, cy, tableR * 0.4, -55);
+    html +=
+      '<circle cx="' +
+      glint[0] +
+      '" cy="' +
+      glint[1] +
+      '" r="' +
+      Math.max(1, r * 0.1).toFixed(1) +
+      '" fill="#ffffff" opacity="' +
+      cut.opacity +
+      '"/>';
+
+    html += ringClarityMarks(clarityId, cx, cy, r);
+    html += ringSparkleRays(cx, cy, r, cut);
+    return html;
+  }
+
+  /** Small round stones (pave etc.) — gradient body + a single catch-light dot. */
+  function ringSimpleGem(cx, cy, r, gem, uid) {
+    var hl = ringPolarPt(cx, cy, r * 0.32, -50);
+    return (
+      '<circle cx="' +
+      cx.toFixed(1) +
+      '" cy="' +
+      cy.toFixed(1) +
+      '" r="' +
+      r.toFixed(1) +
+      '" fill="url(#' +
+      uid +
+      'gem)" stroke="' +
+      gem.edge +
+      '" stroke-width="0.5"/>' +
+      '<circle cx="' +
+      hl[0] +
+      '" cy="' +
+      hl[1] +
+      '" r="' +
+      Math.max(0.6, r * 0.32).toFixed(1) +
+      '" fill="#ffffff" opacity="0.85"/>'
+    );
+  }
+
+  function ringSvgMarkup(state) {
+    var s = state || getRingPreviewState();
+    var metal = ringMetalPalette(s.metal);
+    var gem = ringDiamondPalette(s.color);
+    var r = ringCaratRadius(s.carat);
+    var cut = ringCutSparkle(s.cut);
+    var style = s.style || "solitaire";
+    var uid = "rg" + Math.floor(Math.random() * 1e6);
+
+    var defs =
+      "<defs>" +
+      '<linearGradient id="' +
+      uid +
+      'band" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="' +
+      metal.light +
+      '"/>' +
+      '<stop offset="45%" stop-color="' +
+      metal.band +
+      '"/>' +
+      '<stop offset="100%" stop-color="' +
+      metal.dark +
+      '"/>' +
+      "</linearGradient>" +
+      '<radialGradient id="' +
+      uid +
+      'gem" cx="35%" cy="30%" r="72%">' +
+      '<stop offset="0%" stop-color="#fff"/>' +
+      '<stop offset="38%" stop-color="' +
+      gem.glow +
+      '"/>' +
+      '<stop offset="100%" stop-color="' +
+      gem.body +
+      '"/>' +
+      "</radialGradient>" +
+      '<radialGradient id="' +
+      uid +
+      'table" cx="50%" cy="35%" r="75%">' +
+      '<stop offset="0%" stop-color="#ffffff"/>' +
+      '<stop offset="55%" stop-color="' +
+      gem.tableCore +
+      '"/>' +
+      '<stop offset="100%" stop-color="' +
+      gem.facetLight +
+      '"/>' +
+      "</radialGradient>" +
+      '<filter id="' +
+      uid +
+      'soft"><feGaussianBlur stdDeviation="2"/></filter>' +
+      "</defs>";
+
+    var band =
+      '<ellipse cx="120" cy="118" rx="78" ry="26" fill="none" stroke="url(#' +
+      uid +
+      'band)" stroke-width="14"/>' +
+      '<ellipse cx="120" cy="118" rx="74" ry="22.5" fill="none" stroke="' +
+      metal.dark +
+      '" stroke-width="1" opacity="0.4"/>' +
+      '<path d="M 66 115 Q 120 90 174 115" fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.5" stroke-linecap="round"/>';
+
+    var body = "";
+
+    if (style === "pave") {
+      var stones = "";
+      for (var i = 0; i < 11; i++) {
+        var t = i / 10;
+        var px = 48 + t * 144;
+        var py = 104 + Math.abs(t - 0.5) * 28;
+        var pr = 3.4 + (1 - Math.abs(t - 0.5) * 1.4) * (r / 16);
+        stones +=
+          '<circle cx="' +
+          px.toFixed(1) +
+          '" cy="' +
+          py.toFixed(1) +
+          '" r="' +
+          (pr + 1.1).toFixed(1) +
+          '" fill="none" stroke="' +
+          metal.dark +
+          '" stroke-width="1.2" opacity="0.7"/>' +
+          ringSimpleGem(px, py, pr, gem, uid);
+      }
+      body =
+        '<path d="M42 112 Q120 78 198 112" fill="none" stroke="url(#' +
+        uid +
+        'band)" stroke-width="13" stroke-linecap="round"/>' +
+        '<path d="M48 112 Q120 86 192 112" fill="none" stroke="' +
+        metal.light +
+        '" stroke-width="2" opacity="0.5"/>' +
+        stones +
+        ringSparkleRays(120, 88, r * 0.55, cut);
+    } else if (style === "geometric") {
+      var accentR = Math.max(4.5, r * 0.4);
+      body =
+        '<rect x="40" y="104" width="160" height="16" rx="3" fill="url(#' +
+        uid +
+        'band)"/>' +
+        '<path d="M96 104 L120 78 L144 104" fill="none" stroke="url(#' +
+        uid +
+        'band)" stroke-width="10" stroke-linejoin="round"/>' +
+        '<path d="M104 104 L120 86 L136 104" fill="none" stroke="' +
+        metal.light +
+        '" stroke-width="2" opacity="0.65"/>' +
+        '<circle cx="120" cy="72" r="' +
+        (accentR + 2.2).toFixed(1) +
+        '" fill="' +
+        gem.glow +
+        '" opacity="0.3" filter="url(#' +
+        uid +
+        'soft)"/>' +
+        ringSimpleGem(120, 72, accentR, gem, uid) +
+        ringSparkleRays(120, 72, accentR + 1, cut);
+    } else {
+      var prongTips = "";
+      var prongLines = "";
+      for (var p = 0; p < 6; p++) {
+        var ang = (Math.PI * 2 * p) / 6 - Math.PI / 2;
+        var px0 = 120 + Math.cos(ang) * (r * 0.5);
+        var py0 = 78 + Math.sin(ang) * (r * 0.5);
+        var px1 = 120 + Math.cos(ang) * (r + 4.5);
+        var py1 = 78 + Math.sin(ang) * (r + 4.5);
+        prongLines +=
+          '<line x1="' +
+          px0.toFixed(1) +
+          '" y1="' +
+          py0.toFixed(1) +
+          '" x2="' +
+          px1.toFixed(1) +
+          '" y2="' +
+          py1.toFixed(1) +
+          '" stroke="' +
+          metal.dark +
+          '" stroke-width="2.4" stroke-linecap="round"/>';
+        prongTips +=
+          '<circle cx="' +
+          px1.toFixed(1) +
+          '" cy="' +
+          py1.toFixed(1) +
+          '" r="1.1" fill="' +
+          metal.light +
+          '"/>';
+      }
+      body =
+        band +
+        '<circle cx="120" cy="78" r="' +
+        (r + 3) +
+        '" fill="' +
+        gem.glow +
+        '" opacity="0.4" filter="url(#' +
+        uid +
+        'soft)"/>' +
+        prongLines +
+        ringFacetedGem(120, 78, r, gem, cut, s.clarity, uid) +
+        prongTips;
     }
 
     return (
-      '<svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">' +
-      '<ellipse cx="120" cy="112" rx="72" ry="24" fill="none" stroke="' + color + '" stroke-width="14"/>' +
-      '<path d="M120 58 L128 74 L146 76 L132 88 L136 106 L120 96 L104 106 L108 88 L94 76 L112 74 Z" fill="#fff" stroke="' + color + '" stroke-width="2"/>' +
+      '<svg viewBox="0 0 240 170" xmlns="http://www.w3.org/2000/svg">' +
+      defs +
+      '<ellipse cx="120" cy="148" rx="72" ry="9" fill="rgba(0,0,0,0.45)"/>' +
+      '<ellipse cx="120" cy="146" rx="48" ry="5" fill="rgba(0,0,0,0.35)"/>' +
+      body +
       "</svg>"
     );
   }
 
-  function tinyConceptIcon(conceptId) {
-    var stroke = "#2e7d32";
-    if (conceptId === "honeycomb") {
-      return (
-        '<svg viewBox="0 0 36 36"><path d="M10 14 L18 9 L26 14 V24 L18 29 L10 24 Z" fill="none" stroke="' +
-        stroke +
-        '" stroke-width="2"/></svg>'
-      );
+  function ringPreviewCaptionText(state) {
+    var s = state || getRingPreviewState();
+    var parts = [];
+    if (s.locked.style) {
+      var st = getRingOption("style", s.style);
+      if (st) parts.push(st.name);
     }
-    if (conceptId === "link") {
-      return (
-        '<svg viewBox="0 0 36 36"><path d="M10 20 H26 M14 20 L18 14 L22 20" fill="none" stroke="' +
-        stroke +
-        '" stroke-width="2.2" stroke-linecap="round"/></svg>'
-      );
+    if (s.locked.metal) {
+      var mt = getRingOption("metal", s.metal);
+      if (mt) parts.push(mt.name);
     }
-    return (
-      '<svg viewBox="0 0 36 36"><circle cx="18" cy="14" r="5" fill="none" stroke="' +
-      stroke +
-      '" stroke-width="2"/><ellipse cx="18" cy="24" rx="10" ry="4" fill="none" stroke="' +
-      stroke +
-      '" stroke-width="2"/></svg>'
-    );
+    if (s.locked.carat) {
+      var ct = getRingOption("carat", s.carat);
+      if (ct) parts.push(ct.name);
+    }
+    if (parts.length) return "预览 · " + parts.join(" · ");
+    return "选择参数，预览会跟着变";
+  }
+
+  function formatRingBudget(amount) {
+    var n = Math.round(Number(amount) || 0);
+    return "¥" + n.toLocaleString("zh-CN");
+  }
+
+  function formatRingBudgetDelta(amount) {
+    var n = Math.round(Number(amount) || 0);
+    if (n <= 0) return "约 +¥0";
+    return "约 +" + formatRingBudget(n);
+  }
+
+  function getRingBudgetSummary() {
+    var steps = getRingParamSteps();
+    var total = 0;
+    var filled = 0;
+    steps.forEach(function (step) {
+      var opt = getRingOption(step.id, ringChoices[step.id]);
+      if (!opt) return;
+      filled += 1;
+      total += Number(opt.budget) || 0;
+    });
+    return { total: total, filled: filled, count: steps.length };
+  }
+
+  function updateRingBudget() {
+    var data = getRingData();
+    var summary = getRingBudgetSummary();
+    var labelEl = $("ring-budget-label");
+    var valueEl = $("ring-budget-value");
+    var hintEl = $("ring-budget-hint");
+    var box = $("ring-budget");
+    if (labelEl) labelEl.textContent = data.budgetLabel || "预估预算";
+    if (!valueEl || !hintEl) return;
+
+    if (summary.filled === 0) {
+      valueEl.textContent = "—";
+      hintEl.textContent = data.budgetEmpty || "选参数后同步估算";
+      if (box) box.classList.remove("is-active");
+      return;
+    }
+
+    valueEl.textContent = formatRingBudget(summary.total);
+    if (summary.filled < summary.count) {
+      hintEl.textContent = (
+        data.budgetPartialHint ||
+        "已计入 {n}/{total} 项，未选项暂不计入"
+      )
+        .replace("{n}", String(summary.filled))
+        .replace("{total}", String(summary.count));
+    } else {
+      hintEl.textContent = data.budgetHint || "示意价 · 非门店报价";
+    }
+    if (box) box.classList.add("is-active");
   }
 
   function updateRingPreview() {
     var box = $("ring-preview-svg");
     var caption = $("ring-preview-caption");
-    var concept = getSelectedRingConcept();
-    var metal = getSelectedRingMetal();
-    if (!box) return;
+    var state = getRingPreviewState();
+    if (box) {
+      box.innerHTML = ringSvgMarkup(state);
+      box.classList.toggle("is-dim", !ringChoices.style && !ringChoices.metal);
+    }
+    if (caption && ringPhase !== "done") {
+      caption.textContent = ringPreviewCaptionText(state);
+    }
+    updateRingBudget();
+  }
 
-    box.innerHTML = ringSvgMarkup(concept ? concept.id : "solitaire", metal);
+  function updateRingSheet() {
+    var data = getRingData();
+    var steps = getRingParamSteps();
+    var sheet = $("ring-sheet");
+    var progress = $("ring-progress");
+    var caption = $("ring-preview-caption");
+    var titleEl = $("ring-sheet-title");
+    if (titleEl) titleEl.textContent = data.sheetTitle || "你的配置单";
+    if (!sheet) return;
 
-    if (caption) {
-      if (concept && metal) {
-        caption.textContent = concept.name + " · " + metal.name;
-      } else if (concept) {
-        caption.textContent = concept.name + " · 再选金属";
+    sheet.innerHTML = "";
+    var filled = 0;
+    steps.forEach(function (step, i) {
+      var opt = getRingOption(step.id, ringChoices[step.id]);
+      var li = document.createElement("li");
+      li.className =
+        "ring-sheet-item" +
+        (opt ? " is-filled" : "") +
+        (ringPhase === "param" && i === ringParamIndex ? " is-current" : "");
+      li.innerHTML =
+        '<span class="ring-sheet-key">' +
+        escapeHtml(step.short || step.title) +
+        "</span>" +
+        '<span class="ring-sheet-val">' +
+        escapeHtml(opt ? opt.name : data.sheetEmpty || "待选") +
+        "</span>";
+      sheet.appendChild(li);
+      if (opt) filled += 1;
+    });
+
+    if (progress) {
+      progress.innerHTML = "";
+      steps.forEach(function (_, i) {
+        var dot = document.createElement("span");
+        dot.className =
+          "ring-progress-dot" +
+          (i < filled || (ringPhase === "done" && i < steps.length)
+            ? " is-done"
+            : "") +
+          (ringPhase === "param" && i === ringParamIndex ? " is-current" : "");
+        progress.appendChild(dot);
+      });
+    }
+
+    if (caption && ringPhase === "done") {
+      caption.textContent = "配置单已齐 · 这是按你参数生成的预览";
+    }
+
+    updateRingPreview();
+  }
+
+  function buildRingParamOptions() {
+    var steps = getRingParamSteps();
+    var step = steps[ringParamIndex];
+    var box = $("ring-param-opts");
+    var tipEl = $("ring-tip");
+    var hintEl = $("ring-param-hint");
+    if (!box || !step) return;
+
+    if (hintEl) hintEl.textContent = step.hint || "";
+    box.innerHTML = "";
+
+    var selectedId = ringChoices[step.id] || null;
+    (step.options || []).forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "ring-choice" + (selectedId === opt.id ? " is-selected" : "");
+      btn.innerHTML =
+        '<span class="ring-choice-mark" aria-hidden="true"></span>' +
+        '<span class="ring-choice-text"><strong>' +
+        escapeHtml(opt.name) +
+        "</strong><span>" +
+        escapeHtml(opt.desc || "") +
+        '</span><em class="ring-choice-budget">' +
+        formatRingBudgetDelta(opt.budget) +
+        "</em></span>";
+      btn.addEventListener("click", function () {
+        ringChoices[step.id] = opt.id;
+        buildRingParamOptions();
+        updateRingSheet();
+      });
+      box.appendChild(btn);
+    });
+
+    if (tipEl) {
+      var selected = getRingOption(step.id, selectedId);
+      if (selected && selected.tip) {
+        tipEl.textContent = "小课堂 · " + selected.tip;
+        tipEl.classList.remove("hidden");
       } else {
-        caption.textContent = "选择理念与金属";
+        tipEl.textContent = "";
+        tipEl.classList.add("hidden");
       }
     }
+
+    updateRingPreview();
   }
 
-  function buildRingConceptOptions() {
+  function buildRingSummary() {
     var data = getRingData();
-    var box = $("ring-concept-opts");
-    if (!box) return;
-    box.innerHTML = "";
-
-    (data.concepts || []).forEach(function (c) {
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "ring-choice" + (ringChoices.concept === c.id ? " is-selected" : "");
-      btn.innerHTML =
-        '<span class="ring-choice-icon">' +
-        tinyConceptIcon(c.id) +
-        "</span>" +
-        '<span class="ring-choice-text"><strong>' +
-        c.name +
+    var steps = getRingParamSteps();
+    var list = $("ring-summary-list");
+    var titleEl = $("ring-summary-title");
+    if (titleEl) titleEl.textContent = data.summaryTitle || "配置完成";
+    if (!list) return;
+    list.innerHTML = "";
+    steps.forEach(function (step) {
+      var opt = getRingOption(step.id, ringChoices[step.id]);
+      var li = document.createElement("li");
+      li.innerHTML =
+        "<strong>" +
+        escapeHtml(step.short || step.title) +
         "</strong><span>" +
-        (c.desc || c.tagline || "") +
-        "</span></span>";
-      btn.addEventListener("click", function () {
-        ringChoices.concept = c.id;
-        buildRingConceptOptions();
-        updateRingPreview();
-      });
-      box.appendChild(btn);
+        escapeHtml(opt ? opt.name : "—") +
+        "</span>";
+      list.appendChild(li);
     });
   }
 
-  function buildRingMetalOptions() {
+  function showRingPhase(phase) {
+    ringPhase = phase;
     var data = getRingData();
-    var box = $("ring-metal-opts");
-    if (!box) return;
-    box.innerHTML = "";
-
-    (data.metals || []).forEach(function (m) {
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "ring-choice" + (ringChoices.metal === m.id ? " is-selected" : "");
-      btn.innerHTML =
-        '<span class="ring-choice-swatch" style="background:' +
-        m.color +
-        '"></span>' +
-        '<span class="ring-choice-text"><strong>' +
-        m.name +
-        "</strong><span>抽象预览会换成这个金属色</span></span>";
-      btn.addEventListener("click", function () {
-        ringChoices.metal = m.id;
-        buildRingMetalOptions();
-        updateRingPreview();
-      });
-      box.appendChild(btn);
-    });
-  }
-
-  function showRingStep(step) {
-    ringStep = step;
-    var data = getRingData();
-    var labels = data.steps || {};
+    var steps = getRingParamSteps();
 
     if (el.ringStepPanel) {
       el.ringStepPanel.querySelectorAll(".ring-step").forEach(function (s) {
-        s.classList.toggle("active", s.getAttribute("data-step") === step);
+        s.classList.toggle("active", s.getAttribute("data-step") === phase);
       });
     }
 
-    if (el.ringStepLabel) el.ringStepLabel.textContent = labels[step] || step;
-
-    if (step === "done") {
-      var teases = data.teases || ["不错。"];
-      var concept = getSelectedRingConcept();
-      var metal = getSelectedRingMetal();
-      var label =
-        (concept ? concept.name : "？") + " · " + (metal ? metal.name : "？");
-      $("ring-tease").textContent =
-        teases[Math.floor(Math.random() * teases.length)] + " 「" + label + "」";
-      $("ring-finalize-btn").textContent = data.finalCta || "揭晓婚戒";
+    var introEl = $("ring-intro");
+    if (introEl) {
+      introEl.style.display =
+        phase === "param" && ringParamIndex === 0 ? "" : "none";
     }
 
-    var idx = RING_STEP_ORDER.indexOf(step);
-    $("ring-prev-btn").disabled = idx <= 0;
-    $("ring-next-btn").style.display = step === "done" ? "none" : "";
+    if (phase === "param") {
+      var step = steps[ringParamIndex];
+      if (el.ringStepLabel && step) {
+        el.ringStepLabel.textContent =
+          ringParamIndex + 1 + " / " + steps.length + " · " + step.title;
+      }
+      buildRingParamOptions();
+    } else {
+      if (el.ringStepLabel) {
+        el.ringStepLabel.textContent = "完成 · 配置单";
+      }
+      buildRingSummary();
+      var teases = data.teases || ["不错。"];
+      $("ring-tease").textContent =
+        teases[Math.floor(Math.random() * teases.length)];
+      $("ring-finalize-btn").textContent = data.finalCta || "揭晓我们的对戒";
+    }
+
+    updateRingSheet();
+    $("ring-prev-btn").disabled = phase === "param" && ringParamIndex <= 0;
+    $("ring-next-btn").style.display = phase === "done" ? "none" : "";
   }
 
   function ringCanAdvance() {
-    if (ringStep === "concept") return !!ringChoices.concept;
-    if (ringStep === "metal") return !!ringChoices.metal;
-    return true;
+    if (ringPhase !== "param") return true;
+    var step = getRingParamSteps()[ringParamIndex];
+    return !!(step && ringChoices[step.id]);
   }
 
   function ringNext() {
-    if (ringStep === "engraving") {
-      ringChoices.engraving = ($("ring-engraving-input").value || "").trim();
-    }
+    var steps = getRingParamSteps();
     if (!ringCanAdvance()) {
       if (el.ringStepLabel) {
+        var step = steps[ringParamIndex];
         el.ringStepLabel.textContent =
-          ringStep === "concept" ? "请先选理念" : "请先选金属";
+          "请先选择" + ((step && step.title) || "一项");
       }
       return;
     }
-    var idx = RING_STEP_ORDER.indexOf(ringStep);
-    if (idx < RING_STEP_ORDER.length - 1) showRingStep(RING_STEP_ORDER[idx + 1]);
+    if (ringParamIndex < steps.length - 1) {
+      ringParamIndex += 1;
+      showRingPhase("param");
+      return;
+    }
+    showRingPhase("done");
   }
 
   function ringPrev() {
-    var idx = RING_STEP_ORDER.indexOf(ringStep);
-    if (idx > 0) showRingStep(RING_STEP_ORDER[idx - 1]);
+    if (ringPhase === "done") {
+      ringParamIndex = Math.max(0, getRingParamSteps().length - 1);
+      showRingPhase("param");
+      return;
+    }
+    if (ringParamIndex > 0) {
+      ringParamIndex -= 1;
+      showRingPhase("param");
+    }
   }
 
   function finalizeRing() {
     var data = getRingData();
-    var concept = getSelectedRingConcept();
-    var metal = getSelectedRingMetal();
-    var engraving = ringChoices.engraving || "（无）";
-    var myDesc =
-      (concept ? concept.name : "？") + " · " + (metal ? metal.name : "？");
-
-    closeOverlay("ringdesign");
-    setTimeout(function () {
-      showRingResult(data, myDesc, engraving);
-    }, 200);
+    showRingResult(data);
   }
 
-  function showRingResult(data, myDesc, engraving) {
+  function showRingResult(data) {
     var overlay = $("overlay-ringdesign");
     overlay.hidden = false;
     document.body.classList.add("overlay-open");
@@ -1538,31 +2049,100 @@
         return s.type === "ringdesign";
       });
 
-    var real = data.realRing || { desc: "" };
-    var concept = getSelectedRingConcept();
-    var metal = getSelectedRingMetal();
+    var real = data.realRing || {};
+    var hers = real.hers || {};
+    var his = real.his || {};
+    var steps = getRingParamSteps();
+    var configHtml = steps
+      .map(function (step) {
+        var opt = getRingOption(step.id, ringChoices[step.id]);
+        return (
+          "<li><strong>" +
+          escapeHtml(step.short || step.title) +
+          "</strong><span>" +
+          escapeHtml(opt ? opt.name : "—") +
+          "</span></li>"
+        );
+      })
+      .join("");
+
     var html = "";
     html += '<div class="ring-result-overlay" id="ring-result-content">';
     html += '  <div class="ring-result-card">';
-    html += '    <h2 class="ring-result-title">' + (data.compareTitle || "对比") + "</h2>";
-    html += '    <div class="ring-result-row">';
-    html += '      <div class="ring-result-col">';
-    html += '        <p class="ring-result-label">你的设计</p>';
     html +=
-      '        <div class="ring-result-mini-svg">' +
-      ringSvgMarkup(concept && concept.id, metal) +
+      '    <h2 class="ring-result-title">' +
+      escapeHtml(data.compareTitle || "对比") +
+      "</h2>";
+    html += '    <div class="ring-result-compare">';
+    html += '      <div class="ring-result-col ring-result-yours">';
+    html +=
+      '        <p class="ring-result-label">' +
+      escapeHtml(data.yourConfigLabel || "你刚才选的") +
+      "</p>";
+    html +=
+      '        <div class="ring-result-preview">' +
+      ringSvgMarkup(getRingPreviewState()) +
       "</div>";
-    html += '        <p class="ring-result-desc">' + myDesc + "</p>";
-    html += '        <p class="ring-result-engraving">内壁：「' + engraving + "」</p>";
+    html +=
+      '        <p class="ring-result-budget">' +
+      escapeHtml(data.budgetLabel || "预估预算") +
+      " · " +
+      formatRingBudget(getRingBudgetSummary().total) +
+      "</p>";
+    html += '        <ul class="ring-result-sheet">' + configHtml + "</ul>";
     html += "      </div>";
     html += '      <div class="ring-result-vs">VS</div>';
-    html += '      <div class="ring-result-col">';
-    html += '        <p class="ring-result-label">' + (real.label || "真实婚戒") + "</p>";
-    html += '        <div class="ring-result-real-icon">💍</div>';
-    html += '        <p class="ring-result-desc">' + (real.desc || "") + "</p>";
+    html += '      <div class="ring-result-col ring-result-real">';
+    html +=
+      '        <p class="ring-result-label">' +
+      escapeHtml(real.label || "真实对戒") +
+      "</p>";
+    html += '        <div class="ring-result-pair">';
+    html += '          <figure class="ring-result-photo">';
+    if (hers.image) {
+      html +=
+        '            <img src="' +
+        escapeHtml(hers.image) +
+        '" alt="' +
+        escapeHtml(hers.label || "女戒") +
+        '" loading="lazy" />';
+    }
+    html +=
+      "            <figcaption>" +
+      escapeHtml((hers.label || "女戒") + " · " + (hers.name || "")) +
+      "</figcaption>";
+    html += "          </figure>";
+    html += '          <figure class="ring-result-photo">';
+    if (his.image) {
+      html +=
+        '            <img src="' +
+        escapeHtml(his.image) +
+        '" alt="' +
+        escapeHtml(his.label || "男戒") +
+        '" loading="lazy" />';
+    }
+    html +=
+      "            <figcaption>" +
+      escapeHtml((his.label || "男戒") + " · " + (his.name || "")) +
+      "</figcaption>";
+    html += "          </figure>";
+    html += "        </div>";
+    html +=
+      '        <p class="ring-result-brand">' +
+      escapeHtml(
+        [real.brand, real.metal].filter(Boolean).join(" · ") || ""
+      ) +
+      "</p>";
+    html +=
+      '        <p class="ring-result-desc">' +
+      escapeHtml(real.desc || "") +
+      "</p>";
     html += "      </div>";
     html += "    </div>";
-    html += '    <p class="ring-result-vow">' + (data.finalVow || "") + "</p>";
+    html +=
+      '    <p class="ring-result-vow">' +
+      escapeHtml(data.finalVow || "") +
+      "</p>";
     html +=
       '    <button type="button" class="btn-primary ring-confirm-btn" id="ring-result-done">打卡这一站 ✓</button>';
     html += "  </div></div>";
@@ -1582,28 +2162,16 @@
 
   function startRingDesign(station) {
     var data = getRingData();
-    ringStep = "concept";
-    ringChoices = {
-      concept: (data.concepts && data.concepts[0] && data.concepts[0].id) || null,
-      metal: (data.metals && data.metals[0] && data.metals[0].id) || null,
-      engraving: ""
-    };
+    ringParamIndex = 0;
+    ringPhase = "param";
+    ringChoices = {};
 
     $("ring-intro").textContent = data.intro || "";
-    $("ring-concept-hint").textContent = data.conceptHint || "";
-    $("ring-metal-hint").textContent = data.metalHint || "";
-    $("ring-engraving-hint").textContent = data.engravingHint || "";
-    var inp = $("ring-engraving-input");
-    inp.placeholder = data.engravingPlaceholder || "";
-    inp.value = "";
 
     var old = $("ring-result-content");
     if (old) old.remove();
 
-    buildRingConceptOptions();
-    buildRingMetalOptions();
-    updateRingPreview();
-    showRingStep("concept");
+    showRingPhase("param");
   }
 
   /* ── 云南站：看图猜地点 ── */
@@ -2027,10 +2595,6 @@
 
     $("ring-prev-btn").addEventListener("click", ringPrev);
     $("ring-next-btn").addEventListener("click", ringNext);
-    $("ring-engraving-confirm").addEventListener("click", function () {
-      ringChoices.engraving = $("ring-engraving-input").value.trim();
-      ringNext();
-    });
     $("ring-finalize-btn").addEventListener("click", finalizeRing);
 
     $("letter-done-btn").addEventListener("click", function () {

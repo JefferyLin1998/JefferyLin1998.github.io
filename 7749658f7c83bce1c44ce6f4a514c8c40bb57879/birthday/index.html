@@ -323,35 +323,37 @@
     <section id="overlay-ringdesign" class="project-overlay overlay-ringdesign" hidden>
       <div class="overlay-topbar">
         <button type="button" class="btn-back" data-close="ringdesign">← 返回旅程</button>
-        <span class="overlay-badge" id="ring-step-label">1 · 理念</span>
+        <span class="overlay-badge" id="ring-step-label">1 / 6 · 克拉</span>
       </div>
 
       <div class="ring-atelier" id="ring-design-wrap">
         <div class="ring-showcase" id="ring-showcase">
+          <div class="ring-progress" id="ring-progress" aria-hidden="true"></div>
+          <div class="ring-budget" id="ring-budget">
+            <div class="ring-budget-row">
+              <span class="ring-budget-label" id="ring-budget-label">预估预算</span>
+              <strong class="ring-budget-value" id="ring-budget-value">—</strong>
+            </div>
+            <p class="ring-budget-hint" id="ring-budget-hint">选参数后同步估算</p>
+          </div>
           <div id="ring-preview-svg" class="ring-preview-svg" aria-hidden="true"></div>
-          <p class="ring-preview-caption" id="ring-preview-caption">选择理念与金属</p>
+          <p class="ring-preview-caption" id="ring-preview-caption">选择参数，预览会跟着变</p>
+          <p class="ring-sheet-title" id="ring-sheet-title">你的配置单</p>
+          <ul class="ring-sheet" id="ring-sheet"></ul>
         </div>
 
         <div class="ring-step-panel" id="ring-step-panel">
           <p class="ring-intro" id="ring-intro"></p>
 
-          <div class="ring-step active" data-step="concept">
-            <p class="ring-step-hint" id="ring-concept-hint"></p>
-            <div class="ring-choice-list" id="ring-concept-opts"></div>
-          </div>
-
-          <div class="ring-step" data-step="metal">
-            <p class="ring-step-hint" id="ring-metal-hint"></p>
-            <div class="ring-choice-list" id="ring-metal-opts"></div>
-          </div>
-
-          <div class="ring-step" data-step="engraving">
-            <p class="ring-step-hint" id="ring-engraving-hint"></p>
-            <input type="text" id="ring-engraving-input" class="ring-engraving-input" maxlength="20" />
-            <button type="button" class="btn-primary ring-confirm-btn" id="ring-engraving-confirm">确认刻字</button>
+          <div class="ring-step active" data-step="param">
+            <p class="ring-step-hint" id="ring-param-hint"></p>
+            <div class="ring-choice-list" id="ring-param-opts"></div>
+            <p class="ring-tip hidden" id="ring-tip"></p>
           </div>
 
           <div class="ring-step" data-step="done">
+            <p class="ring-summary-title" id="ring-summary-title">配置完成</p>
+            <ul class="ring-summary-list" id="ring-summary-list"></ul>
             <div class="ring-tease" id="ring-tease"></div>
             <button type="button" class="btn-primary ring-confirm-btn" id="ring-finalize-btn"></button>
           </div>
