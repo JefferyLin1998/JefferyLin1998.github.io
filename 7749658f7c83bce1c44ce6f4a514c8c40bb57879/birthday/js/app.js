@@ -24,6 +24,10 @@
   var comicCorrect = 0;
   var comicBusy = false;
   var comicShowIntroOnce = false;
+  var xianIndex = 0;
+  var xianCorrect = 0;
+  var xianBusy = false;
+  var xianShowIntroOnce = false;
 
   var el = {};
 
@@ -95,6 +99,21 @@
     el.comicGuide = $("sx-guide");
     el.comicGuideName = $("comic-guide-name");
     el.comicGuideAvatar = $("comic-guide-avatar");
+    el.xianTitle = $("xian-title");
+    el.xianIntro = $("xian-intro");
+    el.xianProgress = $("xian-progress");
+    el.xianImage = $("xian-image");
+    el.xianQTitle = $("xian-q-title");
+    el.xianPrompt = $("xian-prompt");
+    el.xianQText = $("xian-q-text");
+    el.xianOptions = $("xian-options");
+    el.xianFeedback = $("xian-feedback");
+    el.xianThought = $("xian-thought");
+    el.xianThoughtText = $("xian-thought-text");
+    el.xianWrong = $("xian-wrong");
+    el.xianWrongImage = $("xian-wrong-image");
+    el.xianWrongCaption = $("xian-wrong-caption");
+    el.xianDiagram = $("xian-diagram");
   }
 
   function loadContent() {
@@ -490,6 +509,10 @@
 
     if (type === "comicmatch" && station) {
       startComicMatch(station);
+    }
+
+    if (type === "xianquiz" && station) {
+      startXianQuiz(station);
     }
 
     if (type === "memory" && station) {
@@ -2359,6 +2382,246 @@
         ? round.wrongHint + " " + (lines.wrong || "进度清零，重新开始～")
         : lines.wrong || "答错了，进度清零，重新开始～";
       restartComicMatch(hint);
+    }
+  }
+
+  /* ── 西安站：情景数学 ── */
+  function getXianQuizData() {
+    return content.xianQuiz || { title: "", intro: "", passCount: 4, rounds: [], lines: {} };
+  }
+
+  function updateXianProgress() {
+    var data = getXianQuizData();
+    var need = data.passCount || (data.rounds || []).length || 4;
+    if (el.xianProgress) {
+      el.xianProgress.textContent = xianCorrect + " / " + need;
+    }
+  }
+
+  function setXianFeedback(text, mood) {
+    if (!el.xianFeedback) return;
+    el.xianFeedback.hidden = !text;
+    el.xianFeedback.textContent = text || "";
+    el.xianFeedback.classList.remove("is-correct", "is-wrong");
+    if (mood === "correct") el.xianFeedback.classList.add("is-correct");
+    if (mood === "wrong") el.xianFeedback.classList.add("is-wrong");
+  }
+
+  function hideXianWrong() {
+    if (el.xianWrong) el.xianWrong.hidden = true;
+  }
+
+  function showXianWrong() {
+    var data = getXianQuizData();
+    if (!el.xianWrong) return;
+    if (el.xianWrongImage && data.wrongImage) {
+      el.xianWrongImage.src = data.wrongImage;
+    }
+    if (el.xianWrongCaption) {
+      el.xianWrongCaption.textContent = data.wrongCaption || "答错了，再来！";
+    }
+    el.xianWrong.hidden = false;
+  }
+
+  function loadXianPanel(src, altText) {
+    if (!el.xianImage) return;
+    el.xianImage.classList.add("is-loading");
+    el.xianImage.onload = function () {
+      el.xianImage.classList.remove("is-loading");
+    };
+    el.xianImage.onerror = function () {
+      el.xianImage.classList.remove("is-loading");
+      el.xianImage.alt = "图片加载失败";
+    };
+    el.xianImage.alt = altText || "西安旅途照片";
+    el.xianImage.decoding = "async";
+    el.xianImage.loading = "eager";
+    if (el.xianImage.getAttribute("src") === src && el.xianImage.complete) {
+      el.xianImage.classList.remove("is-loading");
+      return;
+    }
+    el.xianImage.src = src;
+  }
+
+  function updateXianThought(round) {
+    if (!el.xianThought || !el.xianThoughtText) return;
+    var bubble = round && round.bubble;
+    if (!bubble) {
+      el.xianThought.hidden = true;
+      el.xianThoughtText.textContent = "";
+      return;
+    }
+    el.xianThought.hidden = false;
+    el.xianThoughtText.textContent = bubble;
+  }
+
+  function xianKonigsbergDiagramSvg() {
+    return (
+      '<svg viewBox="0 0 320 112" xmlns="http://www.w3.org/2000/svg" aria-label="柯尼斯堡七桥示意图">' +
+      '<text x="160" y="13" text-anchor="middle" font-size="11" font-weight="700" fill="#6b4a22">柯尼斯堡七桥 · 7 座桥</text>' +
+      '<path d="M0 28 H320 V112 H0 Z" fill="#cfe6f4" opacity="0.55"/>' +
+      '<ellipse cx="108" cy="68" rx="38" ry="22" fill="#ebe3cf" stroke="#8a7350" stroke-width="1.4"/>' +
+      '<ellipse cx="228" cy="68" rx="24" ry="16" fill="#ebe3cf" stroke="#8a7350" stroke-width="1.4"/>' +
+      '<text x="108" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#5c4636">C 岛</text>' +
+      '<text x="228" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#5c4636">D 岛</text>' +
+      '<text x="48" y="24" font-size="10" font-weight="700" fill="#5c4636">A 北岸</text>' +
+      '<text x="272" y="24" font-size="10" font-weight="700" fill="#5c4636">B 南岸</text>' +
+      '<line x1="88" y1="28" x2="88" y2="48" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="108" y1="28" x2="108" y2="48" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="128" y1="28" x2="228" y2="54" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="148" y1="48" x2="208" y2="58" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="88" y1="88" x2="88" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="108" y1="88" x2="108" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="228" y1="84" x2="228" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="88" cy="28" r="3.5" fill="#c0392b"/><text x="88" y="22" text-anchor="middle" font-size="8.5" fill="#c0392b">1</text>' +
+      '<circle cx="108" cy="28" r="3.5" fill="#c0392b"/><text x="108" y="22" text-anchor="middle" font-size="8.5" fill="#c0392b">2</text>' +
+      '<circle cx="178" cy="38" r="3.5" fill="#c0392b"/><text x="178" y="32" text-anchor="middle" font-size="8.5" fill="#c0392b">3</text>' +
+      '<circle cx="178" cy="53" r="3.5" fill="#c0392b"/><text x="178" y="47" text-anchor="middle" font-size="8.5" fill="#c0392b">4</text>' +
+      '<circle cx="88" cy="108" r="3.5" fill="#c0392b"/><text x="88" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">5</text>' +
+      '<circle cx="108" cy="108" r="3.5" fill="#c0392b"/><text x="108" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">6</text>' +
+      '<circle cx="228" cy="108" r="3.5" fill="#c0392b"/><text x="228" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">7</text>' +
+      "</svg>"
+    );
+  }
+
+  function updateXianDiagram(round) {
+    if (!el.xianDiagram) return;
+    var frame = el.xianImage && el.xianImage.closest(".xian-frame");
+    if (!round || round.diagram !== "konigsberg") {
+      el.xianDiagram.hidden = true;
+      el.xianDiagram.innerHTML = "";
+      el.xianDiagram.setAttribute("aria-hidden", "true");
+      if (frame) frame.classList.remove("has-diagram");
+      return;
+    }
+    el.xianDiagram.hidden = false;
+    el.xianDiagram.setAttribute("aria-hidden", "false");
+    el.xianDiagram.innerHTML = xianKonigsbergDiagramSvg();
+    if (frame) frame.classList.add("has-diagram");
+  }
+
+  function startXianQuiz(station) {
+    var data = getXianQuizData();
+    xianBusy = false;
+    xianCorrect = 0;
+    xianIndex = 0;
+    xianShowIntroOnce = true;
+
+    if (el.xianTitle) {
+      el.xianTitle.textContent = data.title || (station.icon + " " + station.city + "站 · 情景数学");
+    }
+    if (el.xianPrompt) {
+      el.xianPrompt.textContent = data.prompt || "看图算一算：";
+    }
+    updateXianProgress();
+
+    (data.rounds || []).forEach(function (round) {
+      if (!round || !round.image) return;
+      var pre = new Image();
+      pre.decoding = "async";
+      pre.src = round.image;
+    });
+    if (data.wrongImage) {
+      var wrongPre = new Image();
+      wrongPre.decoding = "async";
+      wrongPre.src = data.wrongImage;
+    }
+
+    renderXianRound();
+  }
+
+  function renderXianRound() {
+    var data = getXianQuizData();
+    var lines = data.lines || {};
+    var rounds = data.rounds || [];
+    var round = rounds[xianIndex];
+    if (!round) return;
+
+    xianBusy = false;
+    hideXianWrong();
+    setXianFeedback("", "");
+
+    if (xianShowIntroOnce) {
+      xianShowIntroOnce = false;
+      if (el.xianIntro) el.xianIntro.textContent = data.intro || lines.start || "";
+    } else if (el.xianIntro) {
+      el.xianIntro.textContent = lines.start || "古都出题啦，睁大眼睛～";
+    }
+
+    if (el.xianQTitle) el.xianQTitle.textContent = round.title || "";
+    if (el.xianQText) el.xianQText.textContent = round.text || "";
+    loadXianPanel(round.image, round.title || "西安旅途照片");
+    updateXianThought(round);
+    updateXianDiagram(round);
+
+    var options = shuffleArray(round.options || []);
+    el.xianOptions.innerHTML = "";
+    options.forEach(function (opt, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "option-btn photo-option";
+      btn.innerHTML =
+        '<span class="photo-opt-mark">' +
+        String.fromCharCode(65 + i) +
+        '</span><span class="photo-opt-text">' +
+        opt +
+        "</span>";
+      btn.addEventListener("click", function () {
+        onXianOption(opt, btn, round);
+      });
+      el.xianOptions.appendChild(btn);
+    });
+  }
+
+  function onXianOption(choice, btn, round) {
+    if (xianBusy) return;
+    xianBusy = true;
+
+    var buttons = el.xianOptions.querySelectorAll(".option-btn");
+    buttons.forEach(function (b) {
+      b.classList.remove("correct", "wrong");
+      b.disabled = true;
+    });
+
+    var data = getXianQuizData();
+    var lines = data.lines || {};
+    var need = data.passCount || (data.rounds || []).length || 4;
+
+    if (choice === round.correct) {
+      btn.classList.add("correct");
+      xianCorrect += 1;
+      updateXianProgress();
+      var okMsg = round.correctHint
+        ? (lines.correct || "答对啦！") + " " + round.correctHint
+        : lines.correct || "答对啦！下一题继续。";
+      setXianFeedback(okMsg, "correct");
+
+      setTimeout(function () {
+        if (xianCorrect >= need) {
+          setXianFeedback(lines.pass || "三题全过！西安站打卡成功。", "correct");
+          var station = activeStation;
+          setTimeout(function () {
+            if (station) markCompleted(station.id);
+            closeOverlay("xianquiz");
+            advanceToNextStation();
+          }, 900);
+          return;
+        }
+        xianIndex += 1;
+        renderXianRound();
+      }, 700);
+    } else {
+      btn.classList.add("wrong");
+      showXianWrong();
+      setXianFeedback("", "");
+      setTimeout(function () {
+        hideXianWrong();
+        buttons.forEach(function (b) {
+          b.disabled = false;
+          b.classList.remove("wrong", "correct");
+        });
+        xianBusy = false;
+      }, 1800);
     }
   }
 
