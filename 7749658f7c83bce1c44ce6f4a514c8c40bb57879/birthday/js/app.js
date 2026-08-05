@@ -2455,39 +2455,66 @@
     el.xianThoughtText.textContent = bubble;
   }
 
-  function xianKonigsbergDiagramSvg() {
-    return (
-      '<svg viewBox="0 0 320 112" xmlns="http://www.w3.org/2000/svg" aria-label="柯尼斯堡七桥示意图">' +
-      '<text x="160" y="13" text-anchor="middle" font-size="11" font-weight="700" fill="#6b4a22">柯尼斯堡七桥 · 7 座桥</text>' +
-      '<path d="M0 28 H320 V112 H0 Z" fill="#cfe6f4" opacity="0.55"/>' +
-      '<ellipse cx="108" cy="68" rx="38" ry="22" fill="#ebe3cf" stroke="#8a7350" stroke-width="1.4"/>' +
-      '<ellipse cx="228" cy="68" rx="24" ry="16" fill="#ebe3cf" stroke="#8a7350" stroke-width="1.4"/>' +
-      '<text x="108" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#5c4636">C 岛</text>' +
-      '<text x="228" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#5c4636">D 岛</text>' +
-      '<text x="48" y="24" font-size="10" font-weight="700" fill="#5c4636">A 北岸</text>' +
-      '<text x="272" y="24" font-size="10" font-weight="700" fill="#5c4636">B 南岸</text>' +
-      '<line x1="88" y1="28" x2="88" y2="48" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="108" y1="28" x2="108" y2="48" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="128" y1="28" x2="228" y2="54" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="148" y1="48" x2="208" y2="58" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="88" y1="88" x2="88" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="108" y1="88" x2="108" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<line x1="228" y1="84" x2="228" y2="108" stroke="#8b5a3c" stroke-width="3" stroke-linecap="round"/>' +
-      '<circle cx="88" cy="28" r="3.5" fill="#c0392b"/><text x="88" y="22" text-anchor="middle" font-size="8.5" fill="#c0392b">1</text>' +
-      '<circle cx="108" cy="28" r="3.5" fill="#c0392b"/><text x="108" y="22" text-anchor="middle" font-size="8.5" fill="#c0392b">2</text>' +
-      '<circle cx="178" cy="38" r="3.5" fill="#c0392b"/><text x="178" y="32" text-anchor="middle" font-size="8.5" fill="#c0392b">3</text>' +
-      '<circle cx="178" cy="53" r="3.5" fill="#c0392b"/><text x="178" y="47" text-anchor="middle" font-size="8.5" fill="#c0392b">4</text>' +
-      '<circle cx="88" cy="108" r="3.5" fill="#c0392b"/><text x="88" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">5</text>' +
-      '<circle cx="108" cy="108" r="3.5" fill="#c0392b"/><text x="108" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">6</text>' +
-      '<circle cx="228" cy="108" r="3.5" fill="#c0392b"/><text x="228" y="112" text-anchor="middle" font-size="8.5" fill="#c0392b">7</text>' +
-      "</svg>"
-    );
+  function xianOrgansStrokeDiagramSvg() {
+    var pts = {
+      ji: { x: 58, y: 16, label: "发髻" },
+      mei: { x: 62, y: 28, label: "眉" },
+      yan: { x: 66, y: 33, label: "眼" },
+      er: { x: 74, y: 39, label: "耳" },
+      bi: { x: 68, y: 43, label: "鼻" },
+      kou: { x: 64, y: 51, label: "口" },
+      hu: { x: 60, y: 57, label: "胡" }
+    };
+    var edges = [
+      ["ji", "mei"],
+      ["mei", "yan"],
+      ["yan", "er"],
+      ["yan", "bi"],
+      ["er", "bi"],
+      ["bi", "kou"],
+      ["kou", "hu"]
+    ];
+    var html =
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-label="兵马俑器官连线图">';
+    edges.forEach(function (e) {
+      var a = pts[e[0]];
+      var b = pts[e[1]];
+      html +=
+        '<line x1="' +
+        a.x +
+        '" y1="' +
+        a.y +
+        '" x2="' +
+        b.x +
+        '" y2="' +
+        b.y +
+        '" stroke="rgba(255,210,80,0.92)" stroke-width="1.1" stroke-linecap="round"/>';
+    });
+    Object.keys(pts).forEach(function (key) {
+      var p = pts[key];
+      html +=
+        '<circle cx="' +
+        p.x +
+        '" cy="' +
+        p.y +
+        '" r="2.2" fill="#e53935" stroke="#fff" stroke-width="0.55"/>' +
+        '<text x="' +
+        (p.x + (key === "er" ? 3.5 : key === "ji" ? -3.5 : 0)) +
+        '" y="' +
+        (p.y + (key === "ji" ? -2.8 : key === "hu" ? 4.5 : -2.8)) +
+        '" text-anchor="middle" font-size="3.6" font-weight="700" fill="#fff" stroke="#4a2818" stroke-width="0.25">' +
+        p.label +
+        "</text>";
+    });
+    html += "</svg>";
+    return html;
   }
 
   function updateXianDiagram(round) {
     if (!el.xianDiagram) return;
     var frame = el.xianImage && el.xianImage.closest(".xian-frame");
-    if (!round || round.diagram !== "konigsberg") {
+    el.xianDiagram.classList.remove("is-strip");
+    if (!round || !round.diagram) {
       el.xianDiagram.hidden = true;
       el.xianDiagram.innerHTML = "";
       el.xianDiagram.setAttribute("aria-hidden", "true");
@@ -2496,7 +2523,14 @@
     }
     el.xianDiagram.hidden = false;
     el.xianDiagram.setAttribute("aria-hidden", "false");
-    el.xianDiagram.innerHTML = xianKonigsbergDiagramSvg();
+    if (round.diagram === "organs-stroke") {
+      el.xianDiagram.innerHTML = xianOrgansStrokeDiagramSvg();
+    } else {
+      el.xianDiagram.hidden = true;
+      el.xianDiagram.innerHTML = "";
+      if (frame) frame.classList.remove("has-diagram");
+      return;
+    }
     if (frame) frame.classList.add("has-diagram");
   }
 
