@@ -93,12 +93,6 @@
         "wrongHint": "浏阳河就从浏阳流过，「浏阳河」这首歌你听过吧～"
       },
       {
-        "speaker": 0,
-        "text": "我们在浏阳第一次一起看烟花，是在某个特别的节日夜里。",
-        "isTrue": true,
-        "wrongHint": "再想想，那天的烟花和现在的画面是不是重叠了？"
-      },
-      {
         "speaker": 1,
         "text": "浏阳是四川省的一个县级市。",
         "isTrue": false,
@@ -121,12 +115,6 @@
         "text": "浏阳蒸菜很有名，是湘菜的重要分支之一。",
         "isTrue": true,
         "wrongHint": "浏阳蒸菜确实很有名，下次回去再一起吃～"
-      },
-      {
-        "speaker": 1,
-        "text": "浏阳和长沙之间没有高铁，只能坐大巴。",
-        "isTrue": false,
-        "wrongHint": "现在交通很方便，高铁、动车都能到～"
       },
       {
         "speaker": 0,
@@ -539,7 +527,7 @@
     "intro": "三张西安照片，三道趣味算术。看图做题，连对 3 题即可通关；答错可重试，不扣进度。",
     "passCount": 3,
     "prompt": "看图算一算：",
-    "wrongImage": "./pictures/西安/xian-wrong.jpg",
+    "wrongImage": "./pictures/xian/wrong.jpg",
     "wrongCaption": "答错了，再来！",
     "lines": {
       "start": "古都出题啦，睁大眼睛～",
@@ -550,7 +538,7 @@
     "rounds": [
       {
         "id": "q1-melancholy",
-        "image": "./pictures/西安/DSCF4686.jpg",
+        "image": "./pictures/xian/q1-sasha.jpg",
         "title": "忧郁莎莎的购物心事",
         "bubble": "我看中了一套衣服，它先涨价20%，然后降价30块，最后还打了95折，300块到手！我到底有没有吃亏呀？？？",
         "text": "帮忧郁的莎莎算一算：和最初原价比，她到底有没有吃亏？",
@@ -561,7 +549,7 @@
       },
       {
         "id": "q2-balance",
-        "image": "./pictures/西安/f5ebfa7490d035f5ac6db2175de04cbe.jpg",
+        "image": "./pictures/xian/q2-banquet.jpg",
         "title": "天平莎莎的黑瓶子",
         "bubble": "假如我是一个天平，现在有 7 个待测的黑瓶子，有一个黑瓶子里的重量和其他不一样，请问我最多称几次可以找出那个不一样的瓶子？",
         "text": "帮天平莎莎算一算：最多称几次，一定能找出那个不一样的黑瓶子？",
@@ -572,7 +560,7 @@
       },
       {
         "id": "q3-organs-stroke",
-        "image": "./pictures/西安/xian-q3-bingmayong.jpg",
+        "image": "./pictures/xian/q3-bingmayong.jpg",
         "title": "兵马俑器官一笔画",
         "bubble": "这尊大兵马俑头上标了 7 个小红点，如果把相邻的点连起来——能不能不抬笔一次画完所有连线（每条线只走一次）？",
         "text": "能不能不抬笔，一次画完所有连线？",

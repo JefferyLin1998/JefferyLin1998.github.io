@@ -2415,7 +2415,8 @@
     var data = getXianQuizData();
     if (!el.xianWrong) return;
     if (el.xianWrongImage && data.wrongImage) {
-      el.xianWrongImage.src = data.wrongImage;
+      el.xianWrongImage.src =
+        data.wrongImage + (data.wrongImage.indexOf("?") >= 0 ? "&" : "?") + "v=2";
     }
     if (el.xianWrongCaption) {
       el.xianWrongCaption.textContent = data.wrongCaption || "答错了，再来！";
@@ -2436,11 +2437,13 @@
     el.xianImage.alt = altText || "西安旅途照片";
     el.xianImage.decoding = "async";
     el.xianImage.loading = "eager";
-    if (el.xianImage.getAttribute("src") === src && el.xianImage.complete) {
+    // 纯英文路径 + 轻量缓存戳，避免中文目录/旧缓存导致手机不显示
+    var url = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=2";
+    if (el.xianImage.getAttribute("src") === url && el.xianImage.complete && el.xianImage.naturalWidth > 0) {
       el.xianImage.classList.remove("is-loading");
       return;
     }
-    el.xianImage.src = src;
+    el.xianImage.src = url;
   }
 
   function updateXianThought(round) {

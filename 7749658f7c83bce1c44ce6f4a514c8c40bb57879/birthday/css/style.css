@@ -1764,6 +1764,11 @@ h2 {
   z-index: 1;
 }
 
+/* 西安站用真实照片，去掉漫画滤镜，避免看起来像没加载 */
+.overlay-xianquiz .photo-image {
+  filter: none;
+}
+
 .photo-stage#xian-panel {
   display: block;
 }
