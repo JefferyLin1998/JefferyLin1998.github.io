@@ -573,7 +573,7 @@
 
 
   function getJudgeData() {
-    return content.liuyangJudge || { questionBank: [], characters: [], passCount: 6 };
+    return content.liuyangJudge || { questionBank: [], characters: [], passCount: 10 };
   }
 
   function getJudgeBank() {
@@ -583,7 +583,7 @@
 
   function getJudgePassCount() {
     var data = getJudgeData();
-    return data.passCount || 6;
+    return data.passCount || 10;
   }
 
   function pickRandomStatement() {

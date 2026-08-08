@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>浏阳站 · 真假大对决（临时预览）</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255, 193, 7, 0.14), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 90% 10%, rgba(229, 57, 53, 0.1), transparent 50%),
+        linear-gradient(165deg, #1a1a1a 0%, #2a2218 45%, #1c1814 100%);
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .preview-banner {
+      max-width: 420px;
+      margin: 0 auto 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255, 213, 79, 0.12);
+      border: 1px solid rgba(255, 213, 79, 0.28);
+      color: #ffe082;
+      font-size: 0.78rem;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .preview-tools {
+      max-width: 420px;
+      margin: 0 auto 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .preview-tools button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f5f0e6;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .preview-tools button:active {
+      transform: scale(0.97);
+    }
+    #overlay-judge {
+      position: relative;
+      inset: auto;
+      z-index: 1;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      overflow: visible;
+      padding: 0;
+      animation: none;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    #overlay-judge .overlay-topbar {
+      margin-bottom: 10px;
+    }
+    #overlay-judge .btn-back {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .project-overlay-judge {
+      padding: 0;
+    }
+    .preview-pass {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .preview-pass[hidden] {
+      display: none !important;
+    }
+    .preview-pass-card {
+      width: min(340px, 100%);
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+      text-align: center;
+      background: linear-gradient(180deg, #fff8e7, #ffe0b2);
+      color: #3e2723;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    }
+    .preview-pass-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+    .preview-pass-card p {
+      margin: 0 0 18px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      opacity: 0.85;
+    }
+    .preview-pass-card button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #e65100;
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <p class="preview-banner">临时预览页 · 随机抽题连对通关 · 不写入主站进度</p>
+  <div class="preview-tools">
+    <button type="button" id="btn-restart">重新开局</button>
+    <button type="button" id="btn-show-count">查看题库数量</button>
+  </div>
+
+  <section id="overlay-judge" class="project-overlay project-overlay-judge">
+    <div class="overlay-topbar">
+      <button type="button" class="btn-back" tabindex="-1">预览</button>
+      <span class="overlay-badge" id="judge-progress">连对 0 / 10</span>
+    </div>
+    <div class="judge-wechat">
+      <div class="wechat-header">
+        <span class="wechat-back" aria-hidden="true">‹</span>
+        <span class="wechat-title" id="judge-title">浏阳站 · 真假大对决</span>
+        <span class="wechat-more" aria-hidden="true">⋯</span>
+      </div>
+      <p class="judge-intro" id="judge-intro">加载中…</p>
+      <div class="wechat-chat" id="judge-chat"></div>
+      <div class="judge-panel">
+        <p class="judge-prompt">这句话对不对？</p>
+        <div class="judge-actions">
+          <button type="button" class="judge-btn judge-btn-true" id="btn-judge-true">✓ 对</button>
+          <button type="button" class="judge-btn judge-btn-false" id="btn-judge-false">✗ 不对</button>
+        </div>
+        <p id="judge-feedback" class="hint-msg"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="preview-pass" id="preview-pass" hidden>
+    <div class="preview-pass-card">
+      <h2>通关啦 🎆</h2>
+      <p>连续答对完成！这是临时预览，不会推进主站旅程。</p>
+      <button type="button" id="btn-pass-again">再玩一局</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var data = null;
+      var streak = 0;
+      var used = [];
+      var current = null;
+      var busy = false;
+
+      var el = {
+        title: document.getElementById("judge-title"),
+        intro: document.getElementById("judge-intro"),
+        chat: document.getElementById("judge-chat"),
+        progress: document.getElementById("judge-progress"),
+        feedback: document.getElementById("judge-feedback"),
+        btnTrue: document.getElementById("btn-judge-true"),
+        btnFalse: document.getElementById("btn-judge-false"),
+        pass: document.getElementById("preview-pass")
+      };
+
+      function bank() {
+        return (data && data.questionBank) || [];
+      }
+
+      function passCount() {
+        return (data && data.passCount) || 10;
+      }
+
+      function setEnabled(on) {
+        el.btnTrue.disabled = !on;
+        el.btnFalse.disabled = !on;
+      }
+
+      function updateProgress() {
+        el.progress.textContent = "连对 " + streak + " / " + passCount();
+      }
+
+      function scrollBottom() {
+        requestAnimationFrame(function () {
+          el.chat.scrollTop = el.chat.scrollHeight;
+        });
+      }
+
+      function sideOf(stmt) {
+        if (stmt && typeof stmt.speaker === "number") {
+          return stmt.speaker === 0 ? "left" : "right";
+        }
+        return streak % 2 === 0 ? "left" : "right";
+      }
+
+      function pick() {
+        var list = bank();
+        if (!list.length) return null;
+        var available = [];
+        for (var i = 0; i < list.length; i++) {
+          if (used.indexOf(i) === -1) available.push(i);
+        }
+        if (!available.length) {
+          used = [];
+          for (var j = 0; j < list.length; j++) available.push(j);
+        }
+        var idx = available[Math.floor(Math.random() * available.length)];
+        used.push(idx);
+        return list[idx];
+      }
+
+      function appendBubble(stmt, side) {
+        var chars = (data && data.characters) || [];
+        var char = chars[stmt.speaker] || { name: "娃", avatar: "" };
+        var isRight = side === "right";
+        var row = document.createElement("div");
+        row.className = "chat-row " + (isRight ? "chat-row-right" : "chat-row-left");
+
+        var avatar = document.createElement("img");
+        avatar.className = "chat-avatar";
+        avatar.src = char.avatar || "";
+        avatar.alt = char.name || "";
+        avatar.loading = "lazy";
+
+        var body = document.createElement("div");
+        body.className = "chat-body";
+        var name = document.createElement("span");
+        name.className = "chat-name";
+        name.textContent = char.name || "娃";
+        var bubble = document.createElement("div");
+        bubble.className = "chat-bubble";
+        bubble.textContent = stmt.text;
+        body.appendChild(name);
+        body.appendChild(bubble);
+
+        if (isRight) {
+          row.appendChild(body);
+          row.appendChild(avatar);
+        } else {
+          row.appendChild(avatar);
+          row.appendChild(body);
+        }
+        el.chat.appendChild(row);
+      }
+
+      function appendSystem(ok, text) {
+        var row = document.createElement("div");
+        row.className = "chat-row chat-row-system";
+        var bubble = document.createElement("div");
+        bubble.className = "chat-system-msg" + (ok ? "" : " chat-system-msg-fail");
+        bubble.textContent = text || (ok ? "✓ 判断正确" : "✗ 答错了，从头再来");
+        row.appendChild(bubble);
+        el.chat.appendChild(row);
+      }
+
+      function showQuestion() {
+        current = pick();
+        if (!current) {
+          el.feedback.textContent = "题库为空";
+          setEnabled(false);
+          return;
+        }
+        appendBubble(current, sideOf(current));
+        updateProgress();
+        scrollBottom();
+      }
+
+      function restart(msg) {
+        streak = 0;
+        used = [];
+        current = null;
+        busy = false;
+        el.pass.hidden = true;
+        el.chat.innerHTML = "";
+        el.feedback.textContent = msg || "";
+        updateProgress();
+        setEnabled(true);
+        showQuestion();
+      }
+
+      function onAnswer(userSaysTrue) {
+        if (!current || busy) return;
+        busy = true;
+        setEnabled(false);
+        var correct = userSaysTrue === current.isTrue;
+
+        if (correct) {
+          streak += 1;
+          el.feedback.textContent = "答对啦！❤️";
+          appendSystem(true);
+          scrollBottom();
+          updateProgress();
+          setTimeout(function () {
+            el.feedback.textContent = "";
+            if (streak >= passCount()) {
+              el.pass.hidden = false;
+              busy = false;
+              return;
+            }
+            showQuestion();
+            setEnabled(true);
+            busy = false;
+          }, 700);
+        } else {
+          el.feedback.textContent = current.wrongHint || "不对哦～";
+          appendSystem(false);
+          scrollBottom();
+          setTimeout(function () {
+            restart("答错了，从头再来！加油～");
+          }, 1400);
+        }
+      }
+
+      function start() {
+        el.title.textContent = (data && data.title) || "浏阳站 · 真假大对决";
+        el.intro.textContent = (data && data.intro) || "";
+        restart("");
+      }
+
+      document.getElementById("btn-judge-true").addEventListener("click", function () {
+        onAnswer(true);
+      });
+      document.getElementById("btn-judge-false").addEventListener("click", function () {
+        onAnswer(false);
+      });
+      document.getElementById("btn-restart").addEventListener("click", function () {
+        restart("已重新开局");
+      });
+      document.getElementById("btn-pass-again").addEventListener("click", function () {
+        restart("再来一局～");
+      });
+      document.getElementById("btn-show-count").addEventListener("click", function () {
+        var n = bank().length;
+        var t = bank().filter(function (q) { return q.isTrue; }).length;
+        alert("题库共 " + n + " 题（真 " + t + " / 假 " + (n - t) + "），连对 " + passCount() + " 题通关。");
+      });
+
+      fetch("./data/content.json?v=" + Date.now())
+        .then(function (r) {
+          if (!r.ok) throw new Error("load failed");
+          return r.json();
+        })
+        .then(function (json) {
+          data = json.liuyangJudge || {};
+          start();
+        })
+        .catch(function () {
+          el.intro.textContent = "加载 content.json 失败，请用本地服务器打开本页。";
+          setEnabled(false);
+        });
+    })();
+  </script>
+</body>
+</html>
