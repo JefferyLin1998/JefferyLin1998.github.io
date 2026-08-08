@@ -539,7 +539,7 @@
     "intro": "三张西安照片，三道趣味算术。看图做题，连对 3 题即可通关；答错可重试，不扣进度。",
     "passCount": 3,
     "prompt": "看图算一算：",
-    "wrongImage": "./pictures/西安/答错了，再来！.jpg",
+    "wrongImage": "./pictures/西安/xian-wrong.jpg",
     "wrongCaption": "答错了，再来！",
     "lines": {
       "start": "古都出题啦，睁大眼睛～",
@@ -572,7 +572,7 @@
       },
       {
         "id": "q3-organs-stroke",
-        "image": "./pictures/西安/兵马俑.jpg",
+        "image": "./pictures/西安/xian-q3-bingmayong.jpg",
         "title": "兵马俑器官一笔画",
         "bubble": "这尊大兵马俑头上标了 7 个小红点，如果把相邻的点连起来——能不能不抬笔一次画完所有连线（每条线只走一次）？",
         "text": "能不能不抬笔，一次画完所有连线？",
