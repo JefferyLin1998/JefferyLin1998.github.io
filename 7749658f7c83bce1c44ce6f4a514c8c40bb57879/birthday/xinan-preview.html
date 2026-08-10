@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1f2a1a">
+  <title>西南站 · 双关预览（临时）</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 0%, rgba(139, 195, 74, 0.16), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 88% 10%, rgba(0, 150, 136, 0.12), transparent 50%),
+        linear-gradient(165deg, #14201a 0%, #1d2c22 50%, #10180f 100%);
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .preview-banner {
+      max-width: 480px;
+      margin: 0 auto 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255, 213, 79, 0.12);
+      border: 1px solid rgba(255, 213, 79, 0.28);
+      color: #ffe082;
+      font-size: 0.78rem;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .preview-tools {
+      max-width: 480px;
+      margin: 0 auto 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .preview-tools button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f5f0e6;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .preview-tools button:active {
+      transform: scale(0.97);
+    }
+    .stage-swap {
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .stage-pane {
+      position: relative;
+      z-index: 1;
+    }
+    .stage-pane[hidden] {
+      display: none !important;
+    }
+    #overlay-comicmatch,
+    #overlay-puzzle {
+      position: relative;
+      inset: auto;
+      z-index: 1;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      overflow: visible;
+      padding: 0;
+      animation: none;
+    }
+    #overlay-comicmatch .btn-back,
+    #overlay-puzzle .btn-back {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    #overlay-puzzle .puzzle-card {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .preview-pass {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .preview-pass[hidden] {
+      display: none !important;
+    }
+    .preview-pass-card {
+      width: min(340px, 100%);
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+      text-align: center;
+      background: linear-gradient(180deg, #fff8e7, #c8e6c9);
+      color: #1b3a23;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    }
+    .preview-pass-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+    .preview-pass-card p {
+      margin: 0 0 18px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      opacity: 0.85;
+    }
+    .preview-pass-card button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #2e7d32;
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <p class="preview-banner">临时预览页 · 第一关看图猜地点，过关后进入第二关北海拼图 · 不写入主站进度</p>
+  <div class="preview-tools">
+    <button type="button" id="btn-restart">重新开局</button>
+    <button type="button" id="btn-skip">直接进拼图关</button>
+  </div>
+
+  <div class="stage-swap">
+    <!-- 第一关：看图猜地点 -->
+    <div class="stage-pane" id="pane-comic">
+      <section id="overlay-comicmatch" class="project-overlay overlay-comicmatch">
+        <div class="overlay-topbar photo-topbar">
+          <button type="button" class="btn-back" tabindex="-1">预览</button>
+          <span class="overlay-badge" id="comic-progress">0 / 6</span>
+        </div>
+        <div class="photo-wrap" id="comic-wrap">
+          <div class="sx-guide" id="sx-guide">
+            <img id="comic-guide-avatar" class="sx-mask" alt="铜脸向导" />
+            <div class="sx-bubble">
+              <p class="sx-name" id="comic-guide-name">铜脸向导</p>
+              <p class="sx-line" id="comic-intro">加载中…</p>
+            </div>
+          </div>
+          <div class="photo-stage" id="comic-panel">
+            <div class="photo-frame">
+              <img id="comic-image" class="photo-image" alt="旅途照片" decoding="async" />
+            </div>
+          </div>
+          <p class="photo-prompt">这张照片，拍在哪里？</p>
+          <div class="photo-options" id="comic-options"></div>
+          <p class="hint-msg photo-feedback" id="comic-feedback" hidden></p>
+        </div>
+      </section>
+    </div>
+
+    <!-- 第二关：北海拼图 -->
+    <div class="stage-pane" id="pane-puzzle" hidden>
+      <section id="overlay-puzzle" class="project-overlay">
+        <div class="overlay-topbar">
+          <button type="button" class="btn-back" tabindex="-1">预览</button>
+          <span class="overlay-badge" id="puzzle-status">0 次交换</span>
+        </div>
+        <div class="card overlay-card puzzle-card">
+          <h2 id="puzzle-title">西南站 · 第二关 · 拼出海的记忆</h2>
+          <p id="puzzle-intro" class="subtitle"></p>
+          <div class="puzzle-board" id="puzzle-board" role="grid" aria-label="交换拼图"></div>
+          <p id="puzzle-msg" class="hint-msg"></p>
+          <div class="puzzle-actions">
+            <button type="button" class="btn-secondary" id="btn-puzzle-shuffle">重新打乱</button>
+          </div>
+          <div class="puzzle-peek hidden" id="puzzle-peek" aria-hidden="true">
+            <img id="puzzle-peek-img" alt="原图参考" />
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="preview-pass" id="preview-pass" hidden>
+    <div class="preview-pass-card">
+      <h2>西南站通关 🌊</h2>
+      <p>两关都过啦！这是临时预览，不会推进主站旅程。</p>
+      <button type="button" id="btn-pass-again">再玩一局</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var matchData = null;
+      var puzzleData = null;
+      var comicCorrect = 0;
+      var comicIndex = 0;
+      var comicQueue = [];
+      var comicBusy = false;
+      var comicShowIntroOnce = true;
+
+      var puzzleSize = 3;
+      var puzzleTiles = [];
+      var puzzleMoves = 0;
+      var puzzleSolved = false;
+      var puzzleSelected = -1;
+
+      var el = {
+        paneComic: document.getElementById("pane-comic"),
+        panePuzzle: document.getElementById("pane-puzzle"),
+        // comic
+        comicGuideAvatar: document.getElementById("comic-guide-avatar"),
+        comicGuideName: document.getElementById("comic-guide-name"),
+        comicIntro: document.getElementById("comic-intro"),
+        comicProgress: document.getElementById("comic-progress"),
+        comicImage: document.getElementById("comic-image"),
+        comicOptions: document.getElementById("comic-options"),
+        comicFeedback: document.getElementById("comic-feedback"),
+        guide: document.getElementById("sx-guide"),
+        // puzzle
+        puzzleTitle: document.getElementById("puzzle-title"),
+        puzzleIntro: document.getElementById("puzzle-intro"),
+        puzzleBoard: document.getElementById("puzzle-board"),
+        puzzleStatus: document.getElementById("puzzle-status"),
+        puzzleMsg: document.getElementById("puzzle-msg"),
+        puzzlePeek: document.getElementById("puzzle-peek"),
+        puzzlePeekImg: document.getElementById("puzzle-peek-img"),
+        pass: document.getElementById("preview-pass")
+      };
+
+      function showPane(name) {
+        el.paneComic.hidden = name !== "comic";
+        el.panePuzzle.hidden = name !== "puzzle";
+      }
+
+      function shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = a[i];
+          a[i] = a[j];
+          a[j] = t;
+        }
+        return a;
+      }
+
+      /* ───────── 第一关：看图猜地点 ───────── */
+      function comicRounds() {
+        return (matchData && matchData.rounds) || [];
+      }
+      function comicPass() {
+        return (matchData && matchData.passCount) || 6;
+      }
+      function comicLines() {
+        return (matchData && matchData.guideLines) || {};
+      }
+      function setGuideLine(text, mood) {
+        el.comicIntro.textContent = text || "";
+        el.guide.classList.remove("is-talk", "is-wrong");
+        if (mood === "correct" || mood === "idle") el.guide.classList.add("is-talk");
+        if (mood === "wrong") el.guide.classList.add("is-wrong");
+      }
+      function updateComicProgress() {
+        el.comicProgress.textContent = comicCorrect + " / " + comicPass();
+      }
+      function loadComicImage(src, altText) {
+        el.comicImage.classList.add("is-loading");
+        el.comicImage.onload = function () {
+          el.comicImage.classList.remove("is-loading");
+        };
+        el.comicImage.onerror = function () {
+          el.comicImage.classList.remove("is-loading");
+          el.comicImage.alt = "图片加载失败";
+        };
+        el.comicImage.alt = altText || "旅途照片";
+        el.comicImage.decoding = "async";
+        el.comicImage.loading = "eager";
+        el.comicImage.src = src;
+      }
+      function renderComicRound() {
+        var round = comicQueue[comicIndex];
+        if (!round) {
+          comicQueue = shuffle(comicRounds());
+          comicIndex = 0;
+          round = comicQueue[0];
+        }
+        if (!round) return;
+        comicBusy = false;
+        el.comicFeedback.hidden = true;
+        el.comicFeedback.textContent = "";
+        if (comicShowIntroOnce) {
+          comicShowIntroOnce = false;
+          setGuideLine(matchData.intro || comicLines().start || "", "idle");
+        } else {
+          setGuideLine(comicLines().start || "瞪大眼睛看仔细——这张，汝可知何处？", "idle");
+        }
+        loadComicImage(round.image, round.comicTitle || "旅途照片");
+        var options = shuffle(round.options || []);
+        el.comicOptions.innerHTML = "";
+        options.forEach(function (opt, i) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "option-btn photo-option";
+          btn.innerHTML =
+            '<span class="photo-opt-mark">' +
+            String.fromCharCode(65 + i) +
+            '</span><span class="photo-opt-text">' +
+            opt +
+            "</span>";
+          btn.addEventListener("click", function () {
+            onComicOption(opt, btn, round);
+          });
+          el.comicOptions.appendChild(btn);
+        });
+      }
+      function restartComic(msg) {
+        comicCorrect = 0;
+        comicIndex = 0;
+        comicQueue = shuffle(comicRounds());
+        comicShowIntroOnce = false;
+        updateComicProgress();
+        el.comicFeedback.hidden = false;
+        el.comicFeedback.textContent = msg || comicLines().wrong || "答错了，进度清零，重新开始～";
+        el.comicFeedback.classList.remove("is-correct");
+        el.comicFeedback.classList.add("is-wrong");
+        renderComicRound();
+      }
+      function onComicOption(choice, btn, round) {
+        if (comicBusy) return;
+        comicBusy = true;
+        var buttons = el.comicOptions.querySelectorAll(".option-btn");
+        buttons.forEach(function (b) {
+          b.classList.remove("correct", "wrong");
+          b.disabled = true;
+        });
+        if (choice === round.correct) {
+          btn.classList.add("correct");
+          comicCorrect += 1;
+          updateComicProgress();
+          setGuideLine(comicLines().correct || "答对啦！", "correct");
+          setTimeout(function () {
+            if (comicCorrect >= comicPass()) {
+              setGuideLine(comicLines().pass || "地点关过了！", "correct");
+              setTimeout(enterPuzzle, 700);
+              return;
+            }
+            comicIndex += 1;
+            renderComicRound();
+          }, 600);
+        } else {
+          btn.classList.add("wrong");
+          var hint = round.wrongHint
+            ? round.wrongHint + " " + (comicLines().wrong || "进度清零，重新开始～")
+            : comicLines().wrong || "答错了，进度清零，重新开始～";
+          restartComic(hint);
+        }
+      }
+      function startComic() {
+        if (el.comicGuideName) el.comicGuideName.textContent = matchData.guideName || "铜脸向导";
+        if (el.comicGuideAvatar && matchData.guideAvatar) el.comicGuideAvatar.src = matchData.guideAvatar;
+        comicCorrect = 0;
+        comicIndex = 0;
+        comicBusy = false;
+        comicShowIntroOnce = true;
+        comicQueue = shuffle(comicRounds());
+        updateComicProgress();
+        (comicRounds() || []).forEach(function (r) {
+          if (!r || !r.image) return;
+          var pre = new Image();
+          pre.decoding = "async";
+          pre.src = r.image;
+        });
+        showPane("comic");
+        renderComicRound();
+      }
+
+      /* ───────── 第二关：北海拼图 ───────── */
+      function isPuzzleSolved() {
+        for (var i = 0; i < puzzleTiles.length; i++) {
+          if (puzzleTiles[i] !== i) return false;
+        }
+        return true;
+      }
+      function puzzleSwap(i, j) {
+        var t = puzzleTiles[i];
+        puzzleTiles[i] = puzzleTiles[j];
+        puzzleTiles[j] = t;
+      }
+      function shufflePuzzle() {
+        var n = puzzleSize;
+        var total = n * n;
+        puzzleTiles = [];
+        for (var i = 0; i < total; i++) puzzleTiles.push(i);
+        puzzleSolved = false;
+        puzzleMoves = 0;
+        puzzleSelected = -1;
+        do {
+          for (var i = total - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            puzzleSwap(i, j);
+          }
+        } while (isPuzzleSolved());
+      }
+      function renderPuzzle() {
+        var n = puzzleSize;
+        var total = n * n;
+        el.puzzleBoard.innerHTML = "";
+        el.puzzleBoard.style.setProperty("--puzzle-n", n);
+        for (var i = 0; i < total; i++) {
+          var val = puzzleTiles[i];
+          var cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "puzzle-cell";
+          cell.dataset.pos = String(i);
+          var tr = Math.floor(val / n);
+          var tc = val % n;
+          var posPct = n > 1 ? 100 / (n - 1) : 0;
+          cell.style.backgroundImage = "url('" + puzzleData.image + "')";
+          cell.style.backgroundSize = n * 100 + "% " + n * 100 + "%";
+          cell.style.backgroundPosition = tc * posPct + "% " + tr * posPct + "%";
+          var badge = document.createElement("span");
+          badge.className = "puzzle-num";
+          badge.textContent = val + 1;
+          cell.appendChild(badge);
+          if (i === puzzleSelected) cell.classList.add("puzzle-cell-selected");
+          if (puzzleSolved) cell.classList.add("puzzle-cell-done");
+          (function (idx) {
+            cell.addEventListener("click", function () {
+              onPuzzleTileClick(idx);
+            });
+          })(i);
+          var r = Math.floor(i / n);
+          var c = i % n;
+          cell.style.left = (c / n) * 100 + "%";
+          cell.style.top = (r / n) * 100 + "%";
+          cell.style.width = 100 / n + "%";
+          cell.style.height = 100 / n + "%";
+          el.puzzleBoard.appendChild(cell);
+        }
+        el.puzzleStatus.textContent = puzzleSolved ? puzzleMoves + " 次交换 · 通关" : puzzleMoves + " 次交换";
+      }
+      function onPuzzleTileClick(index) {
+        if (puzzleSolved) return;
+        if (puzzleSelected === -1) {
+          puzzleSelected = index;
+        } else if (puzzleSelected === index) {
+          puzzleSelected = -1;
+        } else {
+          puzzleSwap(puzzleSelected, index);
+          puzzleSelected = -1;
+          puzzleMoves += 1;
+          if (isPuzzleSolved()) {
+            puzzleSolved = true;
+            el.puzzleMsg.textContent = puzzleData.success || "拼好啦！";
+            setTimeout(function () {
+              el.pass.hidden = false;
+            }, 600);
+          }
+        }
+        renderPuzzle();
+      }
+      function enterPuzzle() {
+        if (!puzzleData) return;
+        if (el.puzzleTitle) el.puzzleTitle.textContent = puzzleData.title || "西南站 · 第二关 · 拼出海的记忆";
+        if (el.puzzleIntro) el.puzzleIntro.textContent = puzzleData.intro || "";
+        puzzleSize = puzzleData.size || 3;
+        shufflePuzzle();
+        showPane("puzzle");
+        renderPuzzle();
+      }
+
+      /* ───────── 启动 ───────── */
+      function startAll() {
+        el.pass.hidden = true;
+        startComic();
+      }
+
+      document.getElementById("btn-restart").addEventListener("click", startAll);
+      document.getElementById("btn-skip").addEventListener("click", enterPuzzle);
+      document.getElementById("btn-pass-again").addEventListener("click", startAll);
+      document.getElementById("btn-puzzle-shuffle").addEventListener("click", function () {
+        shufflePuzzle();
+        el.puzzleMsg.textContent = "";
+        renderPuzzle();
+      });
+
+      fetch("./data/content.json?v=" + Date.now())
+        .then(function (r) {
+          if (!r.ok) throw new Error("load failed");
+          return r.json();
+        })
+        .then(function (json) {
+          matchData = json.yunnanMatch || {};
+          puzzleData = json.beihaiPuzzle || {};
+          startAll();
+        })
+        .catch(function () {
+          el.comicIntro.textContent = "加载 content.json 失败，请用本地服务器打开本页。";
+        });
+    })();
+  </script>
+</body>
+</html>

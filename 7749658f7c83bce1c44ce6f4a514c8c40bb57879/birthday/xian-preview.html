@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#3a1f0e">
+  <title>西安站 · 情景数学小考（临时预览）</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 70% 50% at 25% 0%, rgba(255, 152, 0, 0.16), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 88% 12%, rgba(229, 87, 53, 0.12), transparent 50%),
+        linear-gradient(165deg, #2a1a10 0%, #3a2418 50%, #1f140d 100%);
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .preview-banner {
+      max-width: 480px;
+      margin: 0 auto 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255, 213, 79, 0.12);
+      border: 1px solid rgba(255, 213, 79, 0.28);
+      color: #ffe082;
+      font-size: 0.78rem;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .preview-tools {
+      max-width: 480px;
+      margin: 0 auto 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .preview-tools button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f5f0e6;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .preview-tools button:active {
+      transform: scale(0.97);
+    }
+    #overlay-xianquiz {
+      position: relative;
+      inset: auto;
+      z-index: 1;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      overflow: visible;
+      padding: 0;
+      animation: none;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    #overlay-xianquiz .btn-back {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .preview-pass {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .preview-pass[hidden] {
+      display: none !important;
+    }
+    .preview-pass-card {
+      width: min(340px, 100%);
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+      text-align: center;
+      background: linear-gradient(180deg, #fff8e7, #ffd9a0);
+      color: #3e2723;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    }
+    .preview-pass-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+    .preview-pass-card p {
+      margin: 0 0 18px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      opacity: 0.85;
+    }
+    .preview-pass-card button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #e65100;
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <p class="preview-banner">临时预览页 · 看图做题，连对 3 题通关 · 不写入主站进度</p>
+  <div class="preview-tools">
+    <button type="button" id="btn-restart">重新开局</button>
+  </div>
+
+  <section id="overlay-xianquiz" class="project-overlay overlay-xianquiz">
+    <div class="overlay-topbar photo-topbar">
+      <button type="button" class="btn-back" tabindex="-1">预览</button>
+      <span class="overlay-badge" id="xian-progress">0 / 3</span>
+    </div>
+    <div class="photo-wrap xian-wrap" id="xian-wrap">
+      <div class="xian-head">
+        <p class="xian-kicker" id="xian-title">西安站 · 情景数学小考</p>
+        <p class="xian-intro" id="xian-intro">加载中…</p>
+      </div>
+      <div class="photo-stage" id="xian-panel">
+        <div class="photo-frame xian-frame">
+          <img id="xian-image" class="photo-image" alt="西安旅途照片" decoding="async" />
+          <div class="xian-thought" id="xian-thought" hidden>
+            <p class="xian-thought-cloud" id="xian-thought-text"></p>
+          </div>
+          <div class="xian-wrong" id="xian-wrong" hidden>
+            <img id="xian-wrong-image" class="xian-wrong-image" alt="答错了，再来" decoding="async" />
+            <p class="xian-wrong-caption" id="xian-wrong-caption">答错了，再来！</p>
+          </div>
+        </div>
+      </div>
+      <p class="xian-q-title" id="xian-q-title"></p>
+      <p class="photo-prompt xian-prompt" id="xian-prompt">看图算一算：</p>
+      <p class="xian-q-text" id="xian-q-text"></p>
+      <div class="photo-options" id="xian-options"></div>
+      <p class="hint-msg photo-feedback" id="xian-feedback" hidden></p>
+    </div>
+  </section>
+
+  <div class="preview-pass" id="preview-pass" hidden>
+    <div class="preview-pass-card">
+      <h2>通关啦 🏯</h2>
+      <p>三题全过！这是临时预览，不会推进主站旅程。</p>
+      <button type="button" id="btn-pass-again">再玩一局</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var data = null;
+      var xianIndex = 0;
+      var xianCorrect = 0;
+      var busy = false;
+
+      var el = {
+        title: document.getElementById("xian-title"),
+        intro: document.getElementById("xian-intro"),
+        progress: document.getElementById("xian-progress"),
+        panel: document.getElementById("xian-panel"),
+        image: document.getElementById("xian-image"),
+        thought: document.getElementById("xian-thought"),
+        thoughtText: document.getElementById("xian-thought-text"),
+        wrong: document.getElementById("xian-wrong"),
+        wrongImage: document.getElementById("xian-wrong-image"),
+        wrongCaption: document.getElementById("xian-wrong-caption"),
+        qTitle: document.getElementById("xian-q-title"),
+        prompt: document.getElementById("xian-prompt"),
+        qText: document.getElementById("xian-q-text"),
+        options: document.getElementById("xian-options"),
+        feedback: document.getElementById("xian-feedback"),
+        pass: document.getElementById("preview-pass")
+      };
+
+      function rounds() {
+        return (data && data.rounds) || [];
+      }
+      function passCount() {
+        return (data && data.passCount) || rounds().length || 3;
+      }
+      function lines() {
+        return (data && data.lines) || {};
+      }
+
+      function updateProgress() {
+        el.progress.textContent = xianCorrect + " / " + passCount();
+      }
+
+      function setFeedback(text, mood) {
+        el.feedback.hidden = !text;
+        el.feedback.textContent = text || "";
+        el.feedback.classList.remove("is-correct", "is-wrong");
+        if (mood === "correct") el.feedback.classList.add("is-correct");
+        if (mood === "wrong") el.feedback.classList.add("is-wrong");
+      }
+
+      function hideWrong() {
+        el.wrong.hidden = true;
+      }
+      function showWrong() {
+        if (el.wrongImage && data.wrongImage) {
+          var u = data.wrongImage;
+          el.wrongImage.src = u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=2";
+        }
+        if (el.wrongCaption) {
+          el.wrongCaption.textContent = data.wrongCaption || "答错了，再来！";
+        }
+        el.wrong.hidden = false;
+      }
+
+      function loadImage(src, altText) {
+        el.image.classList.add("is-loading");
+        el.image.onload = function () {
+          el.image.classList.remove("is-loading");
+        };
+        el.image.onerror = function () {
+          el.image.classList.remove("is-loading");
+          el.image.alt = "图片加载失败";
+        };
+        el.image.alt = altText || "西安旅途照片";
+        el.image.decoding = "async";
+        el.image.loading = "eager";
+        var url = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=2";
+        el.image.src = url;
+      }
+
+      function updateThought(round) {
+        var bubble = round && round.bubble;
+        if (!bubble) {
+          el.thought.hidden = true;
+          el.thoughtText.textContent = "";
+          return;
+        }
+        el.thought.hidden = false;
+        el.thoughtText.textContent = bubble;
+      }
+
+      function shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+        return a;
+      }
+
+      function renderRound() {
+        var round = rounds()[xianIndex];
+        if (!round) return;
+        busy = false;
+        hideWrong();
+        setFeedback("", "");
+        el.intro.textContent = xianIndex === 0 ? (data.intro || lines().start || "") : (lines().start || "古都出题啦，睁大眼睛～");
+        el.qTitle.textContent = round.title || "";
+        el.qText.textContent = round.text || "";
+        loadImage(round.image, round.title || "西安旅途照片");
+        updateThought(round);
+
+        var options = shuffle(round.options || []);
+        el.options.innerHTML = "";
+        options.forEach(function (opt, i) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "option-btn photo-option";
+          btn.innerHTML =
+            '<span class="photo-opt-mark">' +
+            String.fromCharCode(65 + i) +
+            '</span><span class="photo-opt-text">' +
+            opt +
+            "</span>";
+          btn.addEventListener("click", function () {
+            onOption(opt, btn, round);
+          });
+          el.options.appendChild(btn);
+        });
+      }
+
+      function onOption(choice, btn, round) {
+        if (busy) return;
+        busy = true;
+        var buttons = el.options.querySelectorAll(".option-btn");
+        buttons.forEach(function (b) {
+          b.classList.remove("correct", "wrong");
+          b.disabled = true;
+        });
+
+        if (choice === round.correct) {
+          btn.classList.add("correct");
+          xianCorrect += 1;
+          updateProgress();
+          setFeedback(round.correctHint || lines().correct || "答对啦！", "correct");
+
+          setTimeout(function () {
+            if (xianCorrect >= passCount()) {
+              el.pass.hidden = false;
+              busy = false;
+              return;
+            }
+            xianIndex += 1;
+            if (xianIndex >= rounds().length) {
+              el.pass.hidden = false;
+              busy = false;
+              return;
+            }
+            renderRound();
+          }, 1000);
+        } else {
+          btn.classList.add("wrong");
+          showWrong();
+          setFeedback(round.wrongHint || lines().wrong || "哎呀偏了，再试一次～", "wrong");
+          setTimeout(function () {
+            busy = false;
+            renderRound();
+          }, 1600);
+        }
+      }
+
+      function start() {
+        el.title.textContent = data.title || "西安站 · 情景数学小考";
+        el.prompt.textContent = data.prompt || "看图算一算：";
+        xianIndex = 0;
+        xianCorrect = 0;
+        busy = false;
+        el.pass.hidden = true;
+        updateProgress();
+        (rounds() || []).forEach(function (r) {
+          if (!r || !r.image) return;
+          var pre = new Image();
+          pre.decoding = "async";
+          pre.src = r.image;
+        });
+        if (data.wrongImage) {
+          var wp = new Image();
+          wp.decoding = "async";
+          wp.src = data.wrongImage;
+        }
+        renderRound();
+      }
+
+      document.getElementById("btn-restart").addEventListener("click", function () {
+        start();
+      });
+      document.getElementById("btn-pass-again").addEventListener("click", function () {
+        start();
+      });
+
+      fetch("./data/content.json?v=" + Date.now())
+        .then(function (r) {
+          if (!r.ok) throw new Error("load failed");
+          return r.json();
+        })
+        .then(function (json) {
+          data = json.xianQuiz || {};
+          start();
+        })
+        .catch(function () {
+          el.intro.textContent = "加载 content.json 失败，请用本地服务器打开本页。";
+        });
+    })();
+  </script>
+</body>
+</html>
