@@ -3689,3 +3689,42 @@ input[type="text"]:focus {
     padding: 2px 4px 1px;
   }
 }
+
+/* ── 聊天年度报告浮层（浏阳站通关彩蛋） ── */
+.overlay-chatreport:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  padding: 0 10px 12px;
+}
+
+.overlay-chatreport .overlay-topbar {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.chatreport-frame {
+  flex: 1;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(67, 160, 71, 0.18), transparent 55%),
+    linear-gradient(165deg, #071510 0%, #14301f 45%, #0d1f16 100%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.chatreport-actions {
+  max-width: 460px;
+  width: 100%;
+  margin: 10px auto 0;
+}
+
+.chatreport-actions .btn-primary {
+  margin-top: 0;
+  min-height: 46px;
+  font-size: 0.95rem;
+}
+

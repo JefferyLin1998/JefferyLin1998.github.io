@@ -117,7 +117,7 @@
   }
 
   function loadContent() {
-    return fetch("./data/content.json")
+    return fetch("./data/content.json?v=20260905b")
       .then(function (res) {
         if (!res.ok) throw new Error("load failed");
         return res.json();
@@ -747,7 +747,7 @@
           judgeCurrentStmt = null;
           saveProgress();
           closeOverlay("judge");
-          advanceToNextStation();
+          openOverlay("chatreport");
           return;
         }
 
@@ -2903,6 +2903,11 @@
       });
       if (station) markCompleted(station.id);
       closeOverlay("letter");
+      advanceToNextStation();
+    });
+
+    $("btn-chatreport-done").addEventListener("click", function () {
+      closeOverlay("chatreport");
       advanceToNextStation();
     });
 

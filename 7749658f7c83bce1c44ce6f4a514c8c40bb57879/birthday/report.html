@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d1f16">
+  <title>我们的聊天年度报告 · 2024-2026</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(67, 160, 71, 0.18), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 90% 10%, rgba(255, 213, 79, 0.1), transparent 50%),
+        linear-gradient(165deg, #071510 0%, #14301f 45%, #0d1f16 100%);
+      color: var(--text-light);
+      overflow: hidden;
+    }
+    .report-stage {
+      position: relative;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(14px + env(safe-area-inset-bottom, 0px));
+      box-sizing: border-box;
+    }
+    .report-deck {
+      position: relative;
+      width: min(420px, 100%);
+      height: 100%;
+      overflow: hidden;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .report-card {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 44px 30px 88px;
+      box-sizing: border-box;
+      opacity: 0;
+      transform: translateY(26px) scale(0.97);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+      pointer-events: none;
+      overflow-y: auto;
+    }
+    .report-card.active {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .report-card.leaving {
+      opacity: 0;
+      transform: translateY(-26px) scale(0.97);
+    }
+    .rp-kicker {
+      font-size: 0.8rem;
+      letter-spacing: 0.35em;
+      color: var(--primary-light);
+      opacity: 0.8;
+      margin-bottom: 14px;
+    }
+    .rp-emoji {
+      font-size: 52px;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.4));
+    }
+    .rp-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 0 12px;
+      color: #fff;
+      line-height: 1.4;
+    }
+    .rp-big {
+      font-size: 3.4rem;
+      font-weight: 900;
+      line-height: 1.15;
+      color: var(--accent);
+      margin: 8px 0 4px;
+      text-shadow: 0 4px 24px rgba(255, 179, 0, 0.35);
+    }
+    .rp-big small {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-light);
+      margin-left: 4px;
+    }
+    .rp-text {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: rgba(241, 248, 233, 0.85);
+      margin: 6px 0;
+      max-width: 300px;
+    }
+    .rp-quote {
+      margin: 16px auto 0;
+      padding: 12px 16px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      background: rgba(255, 213, 79, 0.08);
+      font-size: 0.86rem;
+      line-height: 1.7;
+      color: rgba(241, 248, 233, 0.9);
+      max-width: 300px;
+      text-align: left;
+    }
+    .rp-vs {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+      margin: 14px 0 4px;
+    }
+    .rp-vs-side {
+      flex: 1;
+      padding: 14px 10px 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .rp-vs-side.win {
+      border-color: rgba(255, 213, 79, 0.55);
+      background: rgba(255, 213, 79, 0.1);
+      box-shadow: 0 0 24px rgba(255, 179, 0, 0.15);
+    }
+    .rp-vs-name {
+      font-size: 0.8rem;
+      color: var(--primary-light);
+      margin-bottom: 6px;
+    }
+    .rp-vs-num {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .rp-vs-sub {
+      font-size: 0.72rem;
+      color: rgba(241, 248, 233, 0.55);
+      margin-top: 4px;
+    }
+    .rp-bars {
+      width: 100%;
+      max-width: 300px;
+      margin: 12px 0 0;
+    }
+    .rp-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 7px 0;
+    }
+    .rp-bar-label {
+      width: 5.2em;
+      font-size: 0.78rem;
+      text-align: right;
+      color: rgba(241, 248, 233, 0.8);
+      flex-shrink: 0;
+    }
+    .rp-bar-track {
+      flex: 1;
+      height: 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+    .rp-bar-fill {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0;
+      transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .rp-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+      max-width: 300px;
+    }
+    .rp-chip {
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.8rem;
+      color: rgba(241, 248, 233, 0.9);
+    }
+    .rp-chip b {
+      color: var(--accent);
+      font-weight: 800;
+      margin-left: 5px;
+    }
+    .rp-hour-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 96px;
+      width: 100%;
+      max-width: 300px;
+      margin: 18px 0 2px;
+    }
+    .rp-hour-bar {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, var(--accent), var(--primary));
+      opacity: 0.85;
+      min-height: 2px;
+      position: relative;
+    }
+    .rp-hour-bar.peak {
+      box-shadow: 0 0 14px rgba(255, 213, 79, 0.55);
+      opacity: 1;
+    }
+    .rp-hour-axis {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 300px;
+      font-size: 0.66rem;
+      color: rgba(241, 248, 233, 0.45);
+      margin-top: 5px;
+    }
+    .rp-month-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 82px;
+      width: 100%;
+      max-width: 300px;
+      margin: 16px 0 2px;
+    }
+    .rp-month-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--primary-light), var(--primary));
+      opacity: 0.75;
+      min-height: 2px;
+    }
+    .rp-month-bar.top {
+      opacity: 1;
+      background: linear-gradient(180deg, var(--accent), var(--accent-warm));
+      box-shadow: 0 0 12px rgba(255, 179, 0, 0.4);
+    }
+    .report-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, transparent, rgba(5, 15, 10, 0.88) 40%);
+      z-index: 5;
+    }
+    .rp-nav-btn {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f1f8e9;
+      border-radius: 999px;
+      min-width: 84px;
+      min-height: 42px;
+      padding: 0 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .rp-nav-btn:active {
+      transform: scale(0.96);
+    }
+    .rp-nav-btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(46, 125, 50, 0.45);
+    }
+    .rp-nav-btn[disabled] {
+      opacity: 0.25;
+      pointer-events: none;
+    }
+    .rp-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .rp-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.22);
+      transition: all 0.3s;
+    }
+    .rp-dot.on {
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(255, 213, 79, 0.6);
+    }
+    .rp-error {
+      color: #ffab91;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .rp-fallback-emoji {
+      font-size: 30px;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-stage">
+    <div class="report-deck" id="report-deck">
+      <div class="report-nav">
+        <button type="button" class="rp-nav-btn" id="rp-prev">上一页</button>
+        <div class="rp-dots" id="rp-dots"></div>
+        <button type="button" class="rp-nav-btn primary" id="rp-next">下一页</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var deck = document.getElementById("report-deck");
+      var dotsEl = document.getElementById("rp-dots");
+      var prevBtn = document.getElementById("rp-prev");
+      var nextBtn = document.getElementById("rp-next");
+      var cards = [];
+      var cur = 0;
+
+      function h(html) {
+        var t = document.createElement("template");
+        t.innerHTML = html.trim();
+        return t.content.firstElementChild;
+      }
+
+      function fmtNum(n) {
+        return Number(n || 0).toLocaleString("zh-Hans-CN");
+      }
+
+      function pct(part, total) {
+        if (!total) return 0;
+        return Math.round((part / total) * 100);
+      }
+
+      function buildCards(d) {
+        var list = [];
+        var sheName = "宝贝";
+        var meName = "我";
+        var range = d.range || {};
+        var she = (d.talker && d.talker.she) || 0;
+        var me = (d.talker && d.talker.me) || 0;
+        var reply = d.replySpeed || {};
+        var media = d.media || {};
+        var busiest = d.busiestDay || {};
+
+        /* 1 封面 */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">WECHAT&nbsp;REPORT</p>' +
+            '<div class="rp-emoji">💬</div>' +
+            '<h2 class="rp-title">我们的聊天年度报告</h2>' +
+            '<p class="rp-text">' + (range.start || "") + " — " + (range.end || "") + '</p>' +
+            '<p class="rp-text">从 2019 年 2 月 17 日那句「嗨(｡･∀･)ﾉﾞ」开始，我们已经聊了七年多。这份报告，统计的是最近两年。</p>' +
+            '<div class="rp-chips"><span class="rp-chip">总消息 <b>' + fmtNum(d.total) + '</b></span><span class="rp-chip">有聊天记录的天数 <b>' + fmtNum(d.activeDays) + '</b></span></div>' +
+          '</div>'
+        ));
+
+        /* 2 总量 */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">MESSAGE&nbsp;TOTAL</p>' +
+            '<div class="rp-emoji">📈</div>' +
+            '<div class="rp-big">' + fmtNum(d.total) + '<small>条</small></div>' +
+            '<p class="rp-text">最近 ' + (range.days || 730) + ' 天，我们互相发了 ' + fmtNum(d.total) + ' 条消息</p>' +
+            '<p class="rp-text">平均每天 <b style="color:var(--accent)">' + (d.avgPerDay || 0) + '</b> 条，几乎天天都有话说</p>' +
+            '<p class="rp-text">其中有聊天记录的日子，占全部的 <b style="color:var(--accent)">' + pct(d.activeDays, range.days) + '%</b></p>' +
+          '</div>'
+        ));
+
+        /* 3 谁说得多 */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">WHO&nbsp;TALKS&nbsp;MORE</p>' +
+            '<div class="rp-emoji">⚖️</div>' +
+            '<h2 class="rp-title">谁的话更多？</h2>' +
+            '<div class="rp-vs">' +
+              '<div class="rp-vs-side ' + (she >= me ? "win" : "") + '"><div class="rp-vs-name">' + sheName + '</div><div class="rp-vs-num">' + fmtNum(she) + '</div><div class="rp-vs-sub">占比 ' + pct(she, she + me) + '%</div></div>' +
+              '<div class="rp-vs-side ' + (me > she ? "win" : "") + '"><div class="rp-vs-name">' + meName + '</div><div class="rp-vs-num">' + fmtNum(me) + '</div><div class="rp-vs-sub">占比 ' + pct(me, she + me) + '%</div></div>' +
+            '</div>' +
+            '<p class="rp-text" style="margin-top:12px">按字数算，' + sheName + ' 打了 ' + fmtNum((d.chars && d.chars.she) || 0) + ' 个字，我打了 ' + fmtNum((d.chars && d.chars.me) || 0) + ' 个字——她赢得更明显 💪</p>' +
+          '</div>'
+        ));
+
+        /* 4 最忙的一天 */
+        if (busiest.date) {
+          var bm = busiest.msg;
+          list.push(h(
+            '<div class="report-card">' +
+              '<p class="rp-kicker">BUSIEST&nbsp;DAY</p>' +
+              '<div class="rp-emoji">🔥</div>' +
+              '<div class="rp-big">' + fmtNum(busiest.count) + '<small>条 / 天</small></div>' +
+              '<p class="rp-text">最热闹的一天是 <b style="color:var(--accent)">' + busiest.date + '</b></p>' +
+              (bm ? '<div class="rp-quote">那天 ' + (bm.who === "she" ? sheName : meName) + ' 说：「' + (bm.text || "") + '」<br><span style="opacity:0.6">' + (bm.dt || "") + '</span></div>' : "") +
+              '<p class="rp-text" style="margin-top:12px">一天 503 条，相当于每两分钟就有一句「在吗」「吃了吗」「哈哈哈」</p>' +
+            '</div>'
+          ));
+        }
+
+        /* 5 时段分布 */
+        var hourly = d.hourly || {};
+        var peak = d.peakHour != null ? d.peakHour : 8;
+        var hourBars = "";
+        var maxH = 1;
+        for (var k in hourly) { if (hourly[k] > maxH) maxH = hourly[k]; }
+        for (var i = 0; i < 24; i++) {
+          var v = hourly[String(i)] || 0;
+          var hgt = Math.max(2, Math.round((v / maxH) * 92));
+          hourBars += '<div class="rp-hour-bar' + (i === peak ? " peak" : "") + '" style="height:' + hgt + 'px" title="' + i + '点: ' + v + '条"></div>';
+        }
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">DAILY&nbsp;RHYTHM</p>' +
+            '<div class="rp-emoji">⏰</div>' +
+            '<h2 class="rp-title">我们的聊天生物钟</h2>' +
+            '<div class="rp-hour-chart">' + hourBars + '</div>' +
+            '<div class="rp-hour-axis"><span>0点</span><span>6点</span><span>12点</span><span>18点</span><span>23点</span></div>' +
+            '<p class="rp-text" style="margin-top:10px">最活跃的时段是 <b style="color:var(--accent)">' + peak + ' 点</b>——早上通勤的地铁上，消息准时开工</p>' +
+            '<p class="rp-text">晚高峰在 18-19 点，下班路上接着聊；深夜偶尔也有我们的悄悄话 🌙</p>' +
+          '</div>'
+        ));
+
+        /* 6 月度曲线 */
+        var monthly = d.monthly || {};
+        var monthBars = "";
+        var maxM = 1;
+        var topMonth = "";
+        for (var mk in monthly) { if (monthly[mk] > maxM) { maxM = monthly[mk]; topMonth = mk; } }
+        for (var mk2 in monthly) {
+          var mh = Math.max(2, Math.round((monthly[mk2] / maxM) * 78));
+          monthBars += '<div class="rp-month-bar' + (mk2 === topMonth ? " top" : "") + '" style="height:' + mh + 'px" title="' + mk2 + ': ' + monthly[mk2] + '条"></div>';
+        }
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">MONTHLY&nbsp;HEARTBEAT</p>' +
+            '<div class="rp-emoji">🗓️</div>' +
+            '<h2 class="rp-title">逐月心跳</h2>' +
+            '<div class="rp-month-chart">' + monthBars + '</div>' +
+            '<p class="rp-text" style="margin-top:10px">聊得最多的月份是 <b style="color:var(--accent)">' + (topMonth || "").replace("-", " 年 ") + ' 月</b>，那个月有 ' + fmtNum(maxM) + ' 条消息</p>' +
+            '<p class="rp-text">低谷的那几个月也不是没话说——只是把话留到见面说了 ❤️</p>' +
+          '</div>'
+        ));
+
+        /* 7 谁先开口 */
+        var fod = d.firstOfDay || {};
+        var fodShe = fod.she || 0;
+        var fodMe = fod.me || 0;
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">WHO&nbsp;TEXTS&nbsp;FIRST</p>' +
+            '<div class="rp-emoji">🌅</div>' +
+            '<h2 class="rp-title">谁先开口？</h2>' +
+            '<div class="rp-vs">' +
+              '<div class="rp-vs-side ' + (fodShe >= fodMe ? "win" : "") + '"><div class="rp-vs-name">' + sheName + '</div><div class="rp-vs-num">' + fodShe + '</div><div class="rp-vs-sub">天先开口</div></div>' +
+              '<div class="rp-vs-side ' + (fodMe > fodShe ? "win" : "") + '"><div class="rp-vs-name">' + meName + '</div><div class="rp-vs-num">' + fodMe + '</div><div class="rp-vs-sub">天先开口</div></div>' +
+            '</div>' +
+            '<p class="rp-text" style="margin-top:12px">每一句早上的「早」、上班摸鱼的碎碎念，都是想念的开始～</p>' +
+          '</div>'
+        ));
+
+        /* 8 回复速度 */
+        var meMed = reply.meMedianSec || 0;
+        var herMed = reply.herMedianSec || 0;
+        function fmtSec(s) {
+          if (s < 60) return s + " 秒";
+          var m = Math.round(s / 60);
+          if (m < 60) return m + " 分钟";
+          return (m / 60).toFixed(1) + " 小时";
+        }
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">REPLY&nbsp;SPEED</p>' +
+            '<div class="rp-emoji">⚡</div>' +
+            '<h2 class="rp-title">秒回大赛</h2>' +
+            '<div class="rp-vs">' +
+              '<div class="rp-vs-side ' + (meMed <= herMed ? "win" : "") + '"><div class="rp-vs-name">' + meName + '</div><div class="rp-vs-num">' + fmtSec(meMed) + '</div><div class="rp-vs-sub">回复中位数</div></div>' +
+              '<div class="rp-vs-side ' + (herMed < meMed ? "win" : "") + '"><div class="rp-vs-name">' + sheName + '</div><div class="rp-vs-num">' + fmtSec(herMed) + '</div><div class="rp-vs-sub">回复中位数</div></div>' +
+            '</div>' +
+            '<p class="rp-text" style="margin-top:12px">' + (meMed <= herMed ? "我拿下了秒回冠军🏆——毕竟老婆的消息必须第一时间响应" : "她才是隐藏的秒回高手，我还要加油") + '</p>' +
+          '</div>'
+        ));
+
+        /* 9 口头禅 */
+        var ph = d.phrasesHer || [];
+        var pm = d.phrasesMe || [];
+        var chipsHer = "";
+        ph.slice(0, 6).forEach(function (p) {
+          chipsHer += '<span class="rp-chip">' + p[0] + ' ×' + fmtNum(p[1]) + '</span>';
+        });
+        var chipsMe = "";
+        pm.slice(0, 6).forEach(function (p) {
+          chipsMe += '<span class="rp-chip">' + p[0] + ' ×' + fmtNum(p[1]) + '</span>';
+        });
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">CATCHPHRASES</p>' +
+            '<div class="rp-emoji">🗣️</div>' +
+            '<h2 class="rp-title">我们的口头禅</h2>' +
+            '<p class="rp-text" style="margin-bottom:2px">' + sheName + ' 最常说：</p>' +
+            '<div class="rp-chips">' + chipsHer + '</div>' +
+            '<p class="rp-text" style="margin:12px 0 2px">我最常说：</p>' +
+            '<div class="rp-chips">' + chipsMe + '</div>' +
+          '</div>'
+        ));
+
+        /* 10 表情包大战 */
+        var sh = d.stickersHer || [];
+        var sm = d.stickersMe || [];
+        function stickerChips(arr, label) {
+          var s = "";
+          arr.slice(0, 5).forEach(function (p) {
+            s += '<span class="rp-chip">' + p[0] + ' ×' + fmtNum(p[1]) + '</span>';
+          });
+          return s;
+        }
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">STICKER&nbsp;BATTLE</p>' +
+            '<div class="rp-emoji">😹</div>' +
+            '<h2 class="rp-title">表情包大战</h2>' +
+            '<p class="rp-text" style="margin-bottom:2px">' + sheName + '：</p>' +
+            '<div class="rp-chips">' + stickerChips(sh) + '</div>' +
+            '<p class="rp-text" style="margin:12px 0 2px">我：</p>' +
+            '<div class="rp-chips">' + stickerChips(sm) + '</div>' +
+            '<p class="rp-text" style="margin-top:12px">两年交换了 ' + fmtNum(((media.imgShe || 0) + (media.imgMe || 0))) + ' 张图片，表情包就是我们的第二语言</p>' +
+          '</div>'
+        ));
+
+        /* 11 电话时刻 */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">CALL&nbsp;MOMENTS</p>' +
+            '<div class="rp-emoji">📞</div>' +
+            '<div class="rp-big">' + fmtNum(media.calls || 0) + '<small>次</small></div>' +
+            '<p class="rp-text">这两年我们打了 ' + fmtNum(media.calls || 0) + ' 次网络电话</p>' +
+            '<p class="rp-text">平均每周一两次——文字聊不完的，就用声音说 🎧</p>' +
+            '<div class="rp-quote">语音消息：她 ' + (media.voiceShe || 0) + ' 条 / 我 ' + (media.voiceMe || 0) + ' 条<br>我们都是打字区选手，但该打电话的时候从不犹豫</div>' +
+          '</div>'
+        ));
+
+        /* 12 关键词 */
+        var kw = d.keywords || [];
+        var kwChips = "";
+        kw.slice(0, 10).forEach(function (p) {
+          kwChips += '<span class="rp-chip">' + p[0] + '<b>' + fmtNum(p[1]) + '</b></span>';
+        });
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">KEYWORDS</p>' +
+            '<div class="rp-emoji">🔑</div>' +
+            '<h2 class="rp-title">这两年聊得最多的词</h2>' +
+            '<div class="rp-chips">' + kwChips + '</div>' +
+            '<p class="rp-text" style="margin-top:14px">「哈哈哈」断层第一——快乐是我们聊天的底色 😄</p>' +
+            '<p class="rp-text">「吃饭」「红包」「奶茶」紧随其后，务实型couple认证 ✅</p>' +
+          '</div>'
+        ));
+
+        /* 13 婚礼记忆 */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">WEDDING&nbsp;MEMORY</p>' +
+            '<div class="rp-emoji">💒</div>' +
+            '<h2 class="rp-title">这两年，我们结婚了</h2>' +
+            '<p class="rp-text">从「婚礼五万、蜜月五万」的预算玩笑，到《S&J 的婚礼特别行动方案》正式立项</p>' +
+            '<p class="rp-text">她在飞机上写誓词，说「我的誓词绝对全场爆笑」</p>' +
+            '<p class="rp-text">我们没请策划师，只请了一位婚礼管家，一切自己来</p>' +
+            '<div class="rp-quote">2025-03-15 · 鲸鱼艺创空间 · 3.15 婚礼答谢-筹备任务清单 ✅ 全部完成</div>' +
+          '</div>'
+        ));
+
+        /* 14 尾声 */
+        var nl = d.nightOwl || {};
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">TO&nbsp;BE&nbsp;CONTINUED</p>' +
+            '<div class="rp-emoji">🎆</div>' +
+            '<h2 class="rp-title">未完待续</h2>' +
+            '<p class="rp-text">七年前，一句「嗨(｡･∀･)ﾉﾞ」开启了我们全部的故事</p>' +
+            '<p class="rp-text">最近两年，' + fmtNum(d.total) + ' 条消息、' + fmtNum(d.activeDays) + ' 天相伴、' + fmtNum(media.calls || 0) + ' 次通话</p>' +
+            '<p class="rp-text">有 ' + (nl.lateDays || 0) + ' 个深夜，我们还舍不得说晚安</p>' +
+            '<p class="rp-text" style="margin-top:10px;color:var(--accent)">下一个两年，继续聊下去吧 ❤️</p>' +
+          '</div>'
+        ));
+
+        return list;
+      }
+
+      function buildFallback() {
+        return [h(
+          '<div class="report-card active">' +
+            '<div class="rp-emoji">💭</div>' +
+            '<h2 class="rp-title">报告加载中…</h2>' +
+            '<p class="rp-text">请用本地服务器打开本页</p>' +
+          '</div>'
+        )];
+      }
+
+      function renderDots() {
+        dotsEl.innerHTML = "";
+        cards.forEach(function (c, i) {
+          var d = document.createElement("span");
+          d.className = "rp-dot" + (i === cur ? " on" : "");
+          dotsEl.appendChild(d);
+        });
+        prevBtn.disabled = cur === 0;
+        nextBtn.textContent = cur === cards.length - 1 ? "再看一遍" : "下一页";
+      }
+
+      function show(i, dir) {
+        if (i < 0 || i >= cards.length) return;
+        var old = cards[cur];
+        var nw = cards[i];
+        if (old && old !== nw) {
+          old.classList.add("leaving");
+          old.classList.remove("active");
+          setTimeout(function () { old.classList.remove("leaving"); }, 550);
+        }
+        cur = i;
+        nw.classList.add("active");
+        nw.scrollTop = 0;
+        renderDots();
+        animateCard(nw);
+      }
+
+      function animateCard(card) {
+        var bars = card.querySelectorAll(".rp-bar-fill");
+        bars.forEach(function (b) { b.style.width = "0"; });
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            bars.forEach(function (b) { b.style.width = (b.getAttribute("data-w") || "0") + "%"; });
+          });
+        });
+      }
+
+      function start() {
+        cards.forEach(function (c) { deck.insertBefore(c, deck.firstChild); });
+        renderDots();
+        show(0);
+      }
+
+      prevBtn.addEventListener("click", function () { show(cur - 1); });
+      nextBtn.addEventListener("click", function () {
+        if (cur === cards.length - 1) { show(0); return; }
+        show(cur + 1);
+      });
+
+      var startTouchX = null;
+      deck.addEventListener("touchstart", function (e) {
+        startTouchX = e.touches[0].clientX;
+      }, { passive: true });
+      deck.addEventListener("touchend", function (e) {
+        if (startTouchX == null) return;
+        var dx = e.changedTouches[0].clientX - startTouchX;
+        startTouchX = null;
+        if (Math.abs(dx) > 60) {
+          if (dx < 0) nextBtn.click();
+          else prevBtn.click();
+        }
+      }, { passive: true });
+
+      fetch("./data/report-data.json?v=" + Date.now())
+        .then(function (r) { if (!r.ok) throw new Error("load failed"); return r.json(); })
+        .then(function (d) {
+          cards = buildCards(d);
+          start();
+        })
+        .catch(function () {
+          cards = buildFallback();
+          start();
+        });
+    })();
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#1a3d2e">
   <title>给你的生日惊喜</title>
-  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/style.css?v=20260905b">
 </head>
 <body>
   <div id="hearts-bg" aria-hidden="true"></div>
@@ -416,6 +416,18 @@
       </div>
     </section>
 
+    <!-- 浮层：聊天年度报告（浏阳站通关彩蛋） -->
+    <section id="overlay-chatreport" class="project-overlay overlay-chatreport" hidden>
+      <div class="overlay-topbar">
+        <button type="button" class="btn-back" data-close="chatreport">← 返回旅程</button>
+        <span class="overlay-badge">📊 聊天年度报告</span>
+      </div>
+      <iframe class="chatreport-frame" src="./report.html?v=20260905b" title="我们的聊天年度报告"></iframe>
+      <div class="chatreport-actions">
+        <button type="button" class="btn-primary" id="btn-chatreport-done">看完啦，继续旅程 🚄</button>
+      </div>
+    </section>
+
     <!-- 浮层：终章（云南） -->
     <section id="overlay-finale" class="project-overlay" hidden>
       <div class="overlay-topbar">
@@ -431,6 +443,6 @@
     </section>
   </main>
 
-  <script src="./js/app.js"></script>
+  <script src="./js/app.js?v=20260905b"></script>
 </body>
 </html>
