@@ -81,42 +81,6 @@
     ],
     "questionBank": [
       {
-        "speaker": 0,
-        "text": "浏阳被称为「中国花炮之乡」，是世界上最大的烟花生产基地之一。",
-        "isTrue": true,
-        "wrongHint": "这个是真的哦～浏阳做烟花可是出了名的！"
-      },
-      {
-        "speaker": 1,
-        "text": "浏阳河不经过浏阳城区，只在边境擦了个边。",
-        "isTrue": false,
-        "wrongHint": "浏阳河就从浏阳流过，「浏阳河」这首歌你听过吧～"
-      },
-      {
-        "speaker": 1,
-        "text": "浏阳是四川省的一个县级市。",
-        "isTrue": false,
-        "wrongHint": "浏阳在湖南省，属于长沙市代管哦～"
-      },
-      {
-        "speaker": 0,
-        "text": "浏阳的菊花石雕是国家级非物质文化遗产。",
-        "isTrue": true,
-        "wrongHint": "没错，菊花石是浏阳的宝贝，这次算送分题！"
-      },
-      {
-        "speaker": 0,
-        "text": "浏阳蒸菜很有名，是湘菜的重要分支之一。",
-        "isTrue": true,
-        "wrongHint": "浏阳蒸菜确实很有名，下次回去再一起吃～"
-      },
-      {
-        "speaker": 0,
-        "text": "大瑶镇是浏阳著名的烟花产业重镇。",
-        "isTrue": true,
-        "wrongHint": "大瑶做烟花的历史很长，这个没记错～"
-      },
-      {
         "speaker": 1,
         "text": "我们重新聊起来的契机，是她约你一起去青海湖毕业旅行。",
         "isTrue": true,
@@ -661,6 +625,132 @@
         "text": "萌雪的男朋友在我们聊天记录里的代号是「机器人」。",
         "isTrue": true,
         "wrongHint": "没错！聊天里全是「机器人送她上班」「机器人落户上海了」。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，Lin 说「嗯嗯」的次数是 Sasa 的两倍还要多——3547 次 vs 789 次。",
+        "isTrue": true,
+        "wrongHint": "没错！「嗯嗯」之王实至名归：3547 vs 789，快五倍了。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Sasa 发「早」的次数比 Lin 多。",
+        "isTrue": false,
+        "wrongHint": "反了——Lin 说了 2262 次「早」，Sasa 1960 次，早起问好主要靠 Lin。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，Lin 的「哈哈哈」次数比 Sasa 多。",
+        "isTrue": true,
+        "wrongHint": "是真的！1868 vs 1661，Lin 笑得更多一点～"
+      },
+      {
+        "speaker": 1,
+        "text": "「嘿嘿」这个词，Sasa 用得比 Lin 多。",
+        "isTrue": false,
+        "wrongHint": "恰好相反——Lin 816 次，Sasa 136 次，「嘿嘿」是 Lin 的招牌。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，「呜呜」这个词是 Lin 用得更多。",
+        "isTrue": true,
+        "wrongHint": "真的！Lin 163 次 vs Sasa 前十都没进——是谁在装哭卖萌？"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Sasa 打的字总量比 Lin 多。",
+        "isTrue": true,
+        "wrongHint": "真的！135 万字 vs 110 万字，Sasa 多打了 25 万个字。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，Lin 的回复速度中位数是 19 秒，Sasa 是 30 秒。",
+        "isTrue": true,
+        "wrongHint": "没错！19 秒 vs 30 秒，Lin 是秒回选手。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，七年里 Sasa 先开口聊天的天数比 Lin 多。",
+        "isTrue": true,
+        "wrongHint": "对！1304 天 vs 1201 天，Sasa 更常主动开启话题。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，深夜 23 点后 Lin 发的消息比 Sasa 多。",
+        "isTrue": true,
+        "wrongHint": "真的！7755 vs 6578，夜猫子是 Lin。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Sasa 发的语音条数是 Lin 的两倍以上。",
+        "isTrue": false,
+        "wrongHint": "不止两倍——是将近五倍：318 条 vs 67 条，Sasa 才是语音担当。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，七年里我们互相发了约 1 万张图片。",
+        "isTrue": true,
+        "wrongHint": "没错！9938 张，Sasa 5548 张略胜 Lin 的 4390 张。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，聊天里最常出现的词是「爱你」。",
+        "isTrue": false,
+        "wrongHint": "是「哈哈哈」！3529 次断层第一，「爱你」163 次排十名开外。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，Sasa 最爱的 emoji 是 😂，用了 2354 次。",
+        "isTrue": true,
+        "wrongHint": "没错！😂 是她的本命 emoji，Lin 最爱的则是 👌（404 次）。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Lin 最常用的 emoji 是 ❤（爱心）。",
+        "isTrue": false,
+        "wrongHint": "是 👌！Lin 用了 404 次 OK 手势，爱心 ♡ 只有 252 次。"
+      },
+      {
+        "speaker": 0,
+        "text": "「老婆」这个词，Lin 说了 505 次，Sasa 只说了 110 次。",
+        "isTrue": true,
+        "wrongHint": "对！505 vs 110，Lin 叫「老婆」的频率是她的四倍多。"
+      },
+      {
+        "speaker": 1,
+        "text": "「宝」这个称呼，Sasa 用得比 Lin 多。",
+        "isTrue": false,
+        "wrongHint": "反了——Lin 2044 次 vs Sasa 628 次，Lin 才是「宝」系称呼大户。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，七年里我们有聊天的日子超过 2500 天。",
+        "isTrue": true,
+        "wrongHint": "对！2505 天，占全部日子的 90%——基本天天有话说。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Sasa 的平均单条消息字数比 Lin 短。",
+        "isTrue": false,
+        "wrongHint": "反了——Sasa 平均 9.1 字/条，Lin 6.6 字/条，Sasa 的话更长。"
+      },
+      {
+        "speaker": 0,
+        "text": "按统计，有 749 个深夜我们还舍不得说晚安。",
+        "isTrue": true,
+        "wrongHint": "没错！七年里 749 个夜晚聊到 23 点以后。"
+      },
+      {
+        "speaker": 1,
+        "text": "按统计，Lin 总消息条数比 Sasa 多。",
+        "isTrue": true,
+        "wrongHint": "对！164,998 vs 147,892，Lin 发的消息条数更多（但字数更少）。"
+      },
+      {
+        "speaker": 0,
+        "text": "「晚安」这个词，Sasa 说的次数比 Lin 多。",
+        "isTrue": false,
+        "wrongHint": "反了——Lin 265 次 vs Sasa 190 次，Lin 更常先说晚安。"
       }
     ]
   },
