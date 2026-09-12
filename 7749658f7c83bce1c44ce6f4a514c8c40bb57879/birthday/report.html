@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0d1f16">
-  <title>我们的聊天年度报告 · 2024-2026</title>
+  <title>我们的聊天年度报告 · 2019-2026</title>
   <link rel="stylesheet" href="./css/style.css">
   <style>
     body {
@@ -356,8 +356,8 @@
 
       function buildCards(d) {
         var list = [];
-        var sheName = "宝贝";
-        var meName = "我";
+        var sheName = "Sasa";
+        var meName = "Lin";
         var range = d.range || {};
         var she = (d.talker && d.talker.she) || 0;
         var me = (d.talker && d.talker.me) || 0;
@@ -372,7 +372,7 @@
             '<div class="rp-emoji">💬</div>' +
             '<h2 class="rp-title">我们的聊天年度报告</h2>' +
             '<p class="rp-text">' + (range.start || "") + " — " + (range.end || "") + '</p>' +
-            '<p class="rp-text">从 2019 年 2 月 17 日那句「嗨(｡･∀･)ﾉﾞ」开始，我们已经聊了七年多。这份报告，统计的是最近两年。</p>' +
+            '<p class="rp-text">从 2019 年 2 月 17 日那句「嗨(｡･∀･)ﾉﾞ」开始，我们已经聊了七年多。这份报告，统计的是 2019 年以来的全部聊天记录。</p>' +
             '<div class="rp-chips"><span class="rp-chip">总消息 <b>' + fmtNum(d.total) + '</b></span><span class="rp-chip">有聊天记录的天数 <b>' + fmtNum(d.activeDays) + '</b></span></div>' +
           '</div>'
         ));
@@ -383,7 +383,7 @@
             '<p class="rp-kicker">MESSAGE&nbsp;TOTAL</p>' +
             '<div class="rp-emoji">📈</div>' +
             '<div class="rp-big">' + fmtNum(d.total) + '<small>条</small></div>' +
-            '<p class="rp-text">最近 ' + (range.days || 730) + ' 天，我们互相发了 ' + fmtNum(d.total) + ' 条消息</p>' +
+            '<p class="rp-text">这 ' + (range.days || 2771) + ' 天，我们互相发了 ' + fmtNum(d.total) + ' 条消息</p>' +
             '<p class="rp-text">平均每天 <b style="color:var(--accent)">' + (d.avgPerDay || 0) + '</b> 条，几乎天天都有话说</p>' +
             '<p class="rp-text">其中有聊天记录的日子，占全部的 <b style="color:var(--accent)">' + pct(d.activeDays, range.days) + '%</b></p>' +
           '</div>'
@@ -399,7 +399,7 @@
               '<div class="rp-vs-side ' + (she >= me ? "win" : "") + '"><div class="rp-vs-name">' + sheName + '</div><div class="rp-vs-num">' + fmtNum(she) + '</div><div class="rp-vs-sub">占比 ' + pct(she, she + me) + '%</div></div>' +
               '<div class="rp-vs-side ' + (me > she ? "win" : "") + '"><div class="rp-vs-name">' + meName + '</div><div class="rp-vs-num">' + fmtNum(me) + '</div><div class="rp-vs-sub">占比 ' + pct(me, she + me) + '%</div></div>' +
             '</div>' +
-            '<p class="rp-text" style="margin-top:12px">按字数算，' + sheName + ' 打了 ' + fmtNum((d.chars && d.chars.she) || 0) + ' 个字，我打了 ' + fmtNum((d.chars && d.chars.me) || 0) + ' 个字——她赢得更明显 💪</p>' +
+            '<p class="rp-text" style="margin-top:12px">按字数算，' + sheName + ' 打了 ' + fmtNum((d.chars && d.chars.she) || 0) + ' 个字，' + meName + ' 打了 ' + fmtNum((d.chars && d.chars.me) || 0) + ' 个字——Sasa 赢得更明显 💪</p>' +
           '</div>'
         ));
 
@@ -413,7 +413,7 @@
               '<div class="rp-big">' + fmtNum(busiest.count) + '<small>条 / 天</small></div>' +
               '<p class="rp-text">最热闹的一天是 <b style="color:var(--accent)">' + busiest.date + '</b></p>' +
               (bm ? '<div class="rp-quote">那天 ' + (bm.who === "she" ? sheName : meName) + ' 说：「' + (bm.text || "") + '」<br><span style="opacity:0.6">' + (bm.dt || "") + '</span></div>' : "") +
-              '<p class="rp-text" style="margin-top:12px">一天 503 条，相当于每两分钟就有一句「在吗」「吃了吗」「哈哈哈」</p>' +
+              '<p class="rp-text" style="margin-top:12px">一天 ' + fmtNum(busiest.count) + ' 条，相当于每两分钟就有一句「在吗」「吃了吗」「哈哈哈」</p>' +
             '</div>'
           ));
         }
@@ -436,29 +436,43 @@
             '<h2 class="rp-title">我们的聊天生物钟</h2>' +
             '<div class="rp-hour-chart">' + hourBars + '</div>' +
             '<div class="rp-hour-axis"><span>0点</span><span>6点</span><span>12点</span><span>18点</span><span>23点</span></div>' +
-            '<p class="rp-text" style="margin-top:10px">最活跃的时段是 <b style="color:var(--accent)">' + peak + ' 点</b>——早上通勤的地铁上，消息准时开工</p>' +
+            '<p class="rp-text" style="margin-top:10px">最活跃的时段是 <b style="color:var(--accent)">' + peak + ' 点</b>——这个钟点，消息准时开工</p>' +
             '<p class="rp-text">晚高峰在 18-19 点，下班路上接着聊；深夜偶尔也有我们的悄悄话 🌙</p>' +
           '</div>'
         ));
 
         /* 6 月度曲线 */
         var monthly = d.monthly || {};
-        var monthBars = "";
+        /* 6 年度心跳（2019 以来按年聚合） */
+        var monthly = d.monthly || {};
+        var yearly = {};
         var maxM = 1;
         var topMonth = "";
-        for (var mk in monthly) { if (monthly[mk] > maxM) { maxM = monthly[mk]; topMonth = mk; } }
+        for (var mk in monthly) {
+          var yk = mk.substring(0, 4);
+          yearly[yk] = (yearly[yk] || 0) + monthly[mk];
+          if (monthly[mk] > maxM) { maxM = monthly[mk]; topMonth = mk; }
+        }
+        var monthBars = "";
         for (var mk2 in monthly) {
           var mh = Math.max(2, Math.round((monthly[mk2] / maxM) * 78));
           monthBars += '<div class="rp-month-bar' + (mk2 === topMonth ? " top" : "") + '" style="height:' + mh + 'px" title="' + mk2 + ': ' + monthly[mk2] + '条"></div>';
         }
+        var yearBars = "";
+        var maxY = 1;
+        for (var yb in yearly) { if (yearly[yb] > maxY) maxY = yearly[yb]; }
+        for (var yb2 in yearly) {
+          var yh = Math.max(2, Math.round((yearly[yb2] / maxY) * 78));
+          yearBars += '<div class="rp-month-bar' + (yearly[yb2] === maxY ? " top" : "") + '" style="height:' + yh + 'px" title="' + yb2 + ' 年: ' + yearly[yb2] + '条"></div>';
+        }
         list.push(h(
           '<div class="report-card">' +
-            '<p class="rp-kicker">MONTHLY&nbsp;HEARTBEAT</p>' +
+            '<p class="rp-kicker">YEARLY&nbsp;HEARTBEAT</p>' +
             '<div class="rp-emoji">🗓️</div>' +
-            '<h2 class="rp-title">逐月心跳</h2>' +
-            '<div class="rp-month-chart">' + monthBars + '</div>' +
-            '<p class="rp-text" style="margin-top:10px">聊得最多的月份是 <b style="color:var(--accent)">' + (topMonth || "").replace("-", " 年 ") + ' 月</b>，那个月有 ' + fmtNum(maxM) + ' 条消息</p>' +
-            '<p class="rp-text">低谷的那几个月也不是没话说——只是把话留到见面说了 ❤️</p>' +
+            '<h2 class="rp-title">逐年心跳</h2>' +
+            '<div class="rp-month-chart">' + yearBars + '</div>' +
+            '<p class="rp-text" style="margin-top:10px">消息最多的一年发了 <b style="color:var(--accent)">' + fmtNum(maxY) + '</b> 条</p>' +
+            '<p class="rp-text">聊得最疯的单月是 ' + (topMonth || "").replace("-", " 年 ") + ' 月——那个月有 ' + fmtNum(maxM) + ' 条消息</p>' +
           '</div>'
         ));
 
@@ -497,7 +511,7 @@
               '<div class="rp-vs-side ' + (meMed <= herMed ? "win" : "") + '"><div class="rp-vs-name">' + meName + '</div><div class="rp-vs-num">' + fmtSec(meMed) + '</div><div class="rp-vs-sub">回复中位数</div></div>' +
               '<div class="rp-vs-side ' + (herMed < meMed ? "win" : "") + '"><div class="rp-vs-name">' + sheName + '</div><div class="rp-vs-num">' + fmtSec(herMed) + '</div><div class="rp-vs-sub">回复中位数</div></div>' +
             '</div>' +
-            '<p class="rp-text" style="margin-top:12px">' + (meMed <= herMed ? "我拿下了秒回冠军🏆——毕竟老婆的消息必须第一时间响应" : "她才是隐藏的秒回高手，我还要加油") + '</p>' +
+            '<p class="rp-text" style="margin-top:12px">' + (meMed <= herMed ? meName + " 拿下了秒回冠军🏆——毕竟老婆的消息必须第一时间响应" : sheName + " 才是隐藏的秒回高手，" + meName + " 还要加油") + '</p>' +
           '</div>'
         ));
 
@@ -512,6 +526,7 @@
         pm.slice(0, 6).forEach(function (p) {
           chipsMe += '<span class="rp-chip">' + p[0] + ' ×' + fmtNum(p[1]) + '</span>';
         });
+
         list.push(h(
           '<div class="report-card">' +
             '<p class="rp-kicker">CATCHPHRASES</p>' +
@@ -519,31 +534,8 @@
             '<h2 class="rp-title">我们的口头禅</h2>' +
             '<p class="rp-text" style="margin-bottom:2px">' + sheName + ' 最常说：</p>' +
             '<div class="rp-chips">' + chipsHer + '</div>' +
-            '<p class="rp-text" style="margin:12px 0 2px">我最常说：</p>' +
+            '<p class="rp-text" style="margin:12px 0 2px">' + meName + ' 最常说：</p>' +
             '<div class="rp-chips">' + chipsMe + '</div>' +
-          '</div>'
-        ));
-
-        /* 10 表情包大战 */
-        var sh = d.stickersHer || [];
-        var sm = d.stickersMe || [];
-        function stickerChips(arr, label) {
-          var s = "";
-          arr.slice(0, 5).forEach(function (p) {
-            s += '<span class="rp-chip">' + p[0] + ' ×' + fmtNum(p[1]) + '</span>';
-          });
-          return s;
-        }
-        list.push(h(
-          '<div class="report-card">' +
-            '<p class="rp-kicker">STICKER&nbsp;BATTLE</p>' +
-            '<div class="rp-emoji">😹</div>' +
-            '<h2 class="rp-title">表情包大战</h2>' +
-            '<p class="rp-text" style="margin-bottom:2px">' + sheName + '：</p>' +
-            '<div class="rp-chips">' + stickerChips(sh) + '</div>' +
-            '<p class="rp-text" style="margin:12px 0 2px">我：</p>' +
-            '<div class="rp-chips">' + stickerChips(sm) + '</div>' +
-            '<p class="rp-text" style="margin-top:12px">两年交换了 ' + fmtNum(((media.imgShe || 0) + (media.imgMe || 0))) + ' 张图片，表情包就是我们的第二语言</p>' +
           '</div>'
         ));
 
@@ -553,9 +545,9 @@
             '<p class="rp-kicker">CALL&nbsp;MOMENTS</p>' +
             '<div class="rp-emoji">📞</div>' +
             '<div class="rp-big">' + fmtNum(media.calls || 0) + '<small>次</small></div>' +
-            '<p class="rp-text">这两年我们打了 ' + fmtNum(media.calls || 0) + ' 次网络电话</p>' +
-            '<p class="rp-text">平均每周一两次——文字聊不完的，就用声音说 🎧</p>' +
-            '<div class="rp-quote">语音消息：她 ' + (media.voiceShe || 0) + ' 条 / 我 ' + (media.voiceMe || 0) + ' 条<br>我们都是打字区选手，但该打电话的时候从不犹豫</div>' +
+            '<p class="rp-text">这些年我们打了 ' + fmtNum(media.calls || 0) + ' 次网络电话</p>' +
+            '<p class="rp-text">文字聊不完的，就用声音说 🎧</p>' +
+            '<div class="rp-quote">语音消息：' + sheName + ' ' + (media.voiceShe || 0) + ' 条 / ' + meName + ' ' + (media.voiceMe || 0) + ' 条<br>我们都是打字区选手，但该打电话的时候从不犹豫</div>' +
           '</div>'
         ));
 
@@ -569,7 +561,7 @@
           '<div class="report-card">' +
             '<p class="rp-kicker">KEYWORDS</p>' +
             '<div class="rp-emoji">🔑</div>' +
-            '<h2 class="rp-title">这两年聊得最多的词</h2>' +
+            '<h2 class="rp-title">这些年聊得最多的词</h2>' +
             '<div class="rp-chips">' + kwChips + '</div>' +
             '<p class="rp-text" style="margin-top:14px">「哈哈哈」断层第一——快乐是我们聊天的底色 😄</p>' +
             '<p class="rp-text">「吃饭」「红包」「奶茶」紧随其后，务实型couple认证 ✅</p>' +
@@ -581,15 +573,43 @@
           '<div class="report-card">' +
             '<p class="rp-kicker">WEDDING&nbsp;MEMORY</p>' +
             '<div class="rp-emoji">💒</div>' +
-            '<h2 class="rp-title">这两年，我们结婚了</h2>' +
+            '<h2 class="rp-title">2025 年，我们结婚了</h2>' +
             '<p class="rp-text">从「婚礼五万、蜜月五万」的预算玩笑，到《S&J 的婚礼特别行动方案》正式立项</p>' +
-            '<p class="rp-text">她在飞机上写誓词，说「我的誓词绝对全场爆笑」</p>' +
+            '<p class="rp-text">' + sheName + ' 在飞机上写誓词，说「我的誓词绝对全场爆笑」</p>' +
             '<p class="rp-text">我们没请策划师，只请了一位婚礼管家，一切自己来</p>' +
             '<div class="rp-quote">2025-03-15 · 鲸鱼艺创空间 · 3.15 婚礼答谢-筹备任务清单 ✅ 全部完成</div>' +
           '</div>'
         ));
 
-        /* 14 尾声 */
+        /* 14 人物画像 · Sasa */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">CHARACTER&nbsp;PROFILE</p>' +
+            '<div class="rp-emoji">👰🏻‍♀️</div>' +
+            '<h2 class="rp-title">' + sheName + ' · 聊天画像</h2>' +
+            '<div class="rp-chips"><span class="rp-chip">🛍️ 购物雷达</span><span class="rp-chip">💼 职场观察员</span><span class="rp-chip">🍜 干饭主力</span><span class="rp-chip">🔍 十万个为什么</span><span class="rp-chip">💛 撒娇大师</span></div>' +
+            '<p class="rp-text" style="margin-top:14px">七年 ' + fmtNum(147892) + ' 条消息，平均每条 9 个字</p>' +
+            '<p class="rp-text">话题榜：剁手购物 &gt; 职场日常 &gt; 美食干饭 &gt; 家人朋友</p>' +
+            '<p class="rp-text">最爱 emoji：😂 ×2354，笑点低实锤</p>' +
+            '<div class="rp-quote" style="margin-top:14px">画像总结：生活里的采购部长兼行程规划师，看到好东西第一反应是分享，看到你在忙第一反应是叮嘱。操心是爱你的方式，砍价是持家的艺术。</div>' +
+          '</div>'
+        ));
+
+        /* 15 人物画像 · Lin */
+        list.push(h(
+          '<div class="report-card">' +
+            '<p class="rp-kicker">CHARACTER&nbsp;PROFILE</p>' +
+            '<div class="rp-emoji">🧑🏻‍💻</div>' +
+            '<h2 class="rp-title">' + meName + ' · 聊天画像</h2>' +
+            '<div class="rp-chips"><span class="rp-chip">🍜 干饭先锋</span><span class="rp-chip">🛒 代购司机</span><span class="rp-chip">💼 摸鱼同事</span><span class="rp-chip">💘 甜蜜担当</span><span class="rp-chip">👌 OK之神</span></div>' +
+            '<p class="rp-text" style="margin-top:14px">七年 ' + fmtNum(164998) + ' 条消息，平均每条 6.6 个字——字少但条条到位</p>' +
+            '<p class="rp-text">话题榜：美食干饭 &gt; 购物剁手 &gt; 工作吐槽 &gt; 婚礼家庭</p>' +
+            '<p class="rp-text">「嗯嗯好」系列出场 50+ 次，配合度满分</p>' +
+            '<div class="rp-quote" style="margin-top:14px">画像总结：话不多的行动派。你负责种草和规划，他负责下单和跑腿；聊天记录里「好的」「行」「嗯嗯」最多，但每一个都是「听你的」。</div>' +
+          '</div>'
+        ));
+
+        /* 16 尾声 */
         var nl = d.nightOwl || {};
         list.push(h(
           '<div class="report-card">' +
@@ -597,9 +617,9 @@
             '<div class="rp-emoji">🎆</div>' +
             '<h2 class="rp-title">未完待续</h2>' +
             '<p class="rp-text">七年前，一句「嗨(｡･∀･)ﾉﾞ」开启了我们全部的故事</p>' +
-            '<p class="rp-text">最近两年，' + fmtNum(d.total) + ' 条消息、' + fmtNum(d.activeDays) + ' 天相伴、' + fmtNum(media.calls || 0) + ' 次通话</p>' +
+            '<p class="rp-text">七年间，' + fmtNum(d.total) + ' 条消息、' + fmtNum(d.activeDays) + ' 天相伴、' + fmtNum(media.calls || 0) + ' 次通话</p>' +
             '<p class="rp-text">有 ' + (nl.lateDays || 0) + ' 个深夜，我们还舍不得说晚安</p>' +
-            '<p class="rp-text" style="margin-top:10px;color:var(--accent)">下一个两年，继续聊下去吧 ❤️</p>' +
+            '<p class="rp-text" style="margin-top:10px;color:var(--accent)">下一个七年，继续聊下去吧 ❤️</p>' +
           '</div>'
         ));
 

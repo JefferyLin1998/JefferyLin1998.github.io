@@ -71,7 +71,7 @@ def main():
         return
 
     end_time = records[-1][0]
-    start_time = end_time - timedelta(days=730)
+    start_time = datetime(2019, 1, 1)
     window = [r for r in records if r[0] > start_time]
     print("window:", start_time, "->", end_time, "msgs:", len(window))
 
@@ -192,24 +192,41 @@ def main():
         return round(s[len(s) // 2])
 
     top_day = per_day.most_common(1)[0]
+    # 找最忙那天的一句话：优先挑带开心语气/积极词的消息
+    happy_words = ["哈哈", "嘿嘿", "开心", "喜欢", "爱你", "想你", "好耶", "嘻嘻", "呀", "啦", "！", "~", "❤", "😆", "😄"]
+    sad_words = ["唉", "烦", "累", "哭", "难", "生气", "吵", "对不起", "bad new", "分手"]
     top_day_msg = None
-    # 找最忙那天的一句话
+    day_msgs = []
     for dt, kind, name, text in window:
         if dt.date().isoformat() == top_day[0] and len(text) > 4 and kind == "":
-            top_day_msg = {"dt": dt.strftime("%m-%d %H:%M"), "who": "she" if is_she(name) else "me", "text": text[:60]}
+            day_msgs.append((dt, name, text))
+    happy_pick = None
+    long_pick = None
+    for dt, name, text in day_msgs:
+        low = text.lower()
+        t = text.strip()
+        if "？" in t or "?" in t:
+            continue
+        if len(t) < 6:
+            continue
+        if long_pick is None and len(t) >= 12 and not any(w in low for w in sad_words):
+            long_pick = {"dt": dt.strftime("%m-%d %H:%M"), "who": "she" if is_she(name) else "me", "text": text[:60]}
+        if any(w in text for w in happy_words) and not any(w in low for w in sad_words) and len(t) >= 10:
+            happy_pick = {"dt": dt.strftime("%m-%d %H:%M"), "who": "she" if is_she(name) else "me", "text": text[:60]}
             break
+    top_day_msg = happy_pick or long_pick or (day_msgs[0] and {"dt": day_msgs[0][0].strftime("%m-%d %H:%M"), "who": "she" if is_she(day_msgs[0][1]) else "me", "text": day_msgs[0][2][:60]})
 
     night_count_she = sum(v for h, v in hour_she.items() if h >= 23 or h < 1)
     night_count_me = sum(v for h, v in hour_me.items() if h >= 23 or h < 1)
 
     report = {
         "generatedAt": end_time.strftime("%Y-%m-%d %H:%M"),
-        "range": {
-            "start": start_time.date().isoformat(),
-            "end": end_time.date().isoformat(),
-            "days": days_span,
-            "label": "最近两年",
-        },
+              "range": {
+                  "start": start_time.date().isoformat(),
+                  "end": end_time.date().isoformat(),
+                  "days": days_span,
+                  "label": "2019年以来",
+              },
         "total": len(window),
         "activeDays": len(per_day),
         "avgPerDay": round(len(window) / max(1, len(per_day))),
